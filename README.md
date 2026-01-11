@@ -62,6 +62,7 @@ Amaç; öğretmenin karar mantığını taklit eden, gerekçeli, kısmi puanlama
 * Yeni model oluştururken otomatik soru algılama
 * Manuel düzenleme her zaman mümkün
 * 750 Sayfa yazılı kağıdı el ile etiketlendi ve eğitildi.
+* https://universe.roboflow.com/erbascan/
 
 
 ### 📊 Raporlama
