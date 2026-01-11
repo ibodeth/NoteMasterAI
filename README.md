@@ -19,19 +19,10 @@ Amaç; öğretmenin karar mantığını taklit eden, gerekçeli, kısmi puanlama
 
 ## 📸 Ekran Görüntüleri (Otomatik Galeri)
 
-> Görseller `assets/screenshots/` klasöründen otomatik yüklenir.
-> Dosyaları **numaralı** eklemen yeterlidir: `1.png`, `2.png`, `3.png` ...
-
 <p align="center">
   <img src="assets/screenshots/1.png" width="30%" />
   <img src="assets/screenshots/2.png" width="30%" />
   <img src="assets/screenshots/3.png" width="30%" />
-</p>
-
-<p align="center">
-  <img src="assets/screenshots/4.png" width="30%" />
-  <img src="assets/screenshots/5.png" width="30%" />
-  <img src="assets/screenshots/6.png" width="30%" />
 </p>
 
 ---
