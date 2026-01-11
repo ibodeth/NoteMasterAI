@@ -17,7 +17,7 @@ Amaç; öğretmenin karar mantığını taklit eden, gerekçeli, kısmi puanlama
 
 ---
 
-## 📸 Ekran Görüntüleri (Otomatik Galeri)
+## 📸 Ekran Görüntüleri
 
 <p align="center">
   <img src="assets/screenshots/1.png" width="30%" />
@@ -61,6 +61,8 @@ Amaç; öğretmenin karar mantığını taklit eden, gerekçeli, kısmi puanlama
 
 * Yeni model oluştururken otomatik soru algılama
 * Manuel düzenleme her zaman mümkün
+* 750 Sayfa yazılı kağıdı el ile etiketlendi ve eğitildi.
+
 
 ### 📊 Raporlama
 
