@@ -1,0 +1,257 @@
+{
+    "model_name": "T\u00fcrk\u00e7e",
+    "ref_width": 2481,
+    "ref_height": 3508,
+    "zones": {
+        "0": [
+            {
+                "id": "889a5bcb-38d4-4df1-ba07-a13e76b998be",
+                "zone_name": "\u00c7oktan Se\u00e7meli",
+                "zone_type": "\u00c7oktan Se\u00e7meli",
+                "zone_points": 5.0,
+                "num_options": 5,
+                "left": 129.38742065429688,
+                "top": 2987.082763671875,
+                "width": 57.164459228515625,
+                "height": 255.373779296875
+            },
+            {
+                "id": "a821d4e8-ab9a-4f5b-a881-34881d736e2f",
+                "zone_name": "\u00c7oktan Se\u00e7meli",
+                "zone_type": "\u00c7oktan Se\u00e7meli",
+                "zone_points": 5.0,
+                "num_options": 5,
+                "left": 1302.5748291015625,
+                "top": 910.5227661132812,
+                "width": 61.6363525390625,
+                "height": 256.77899169921875
+            },
+            {
+                "id": "28220be7-4659-42f8-8e4a-8e90a78a9a99",
+                "zone_name": "\u00c7oktan Se\u00e7meli",
+                "zone_type": "\u00c7oktan Se\u00e7meli",
+                "zone_points": 5.0,
+                "num_options": 5,
+                "left": 1314.00146484375,
+                "top": 1519.0162353515625,
+                "width": 57.547119140625,
+                "height": 258.363525390625
+            },
+            {
+                "id": "34e55c33-2674-492d-93c1-48dfcbfb7a7c",
+                "zone_name": "\u00c7oktan Se\u00e7meli",
+                "zone_type": "\u00c7oktan Se\u00e7meli",
+                "zone_points": 5.0,
+                "num_options": 5,
+                "left": 128.8816375732422,
+                "top": 2440.46875,
+                "width": 57.74366760253906,
+                "height": 252.782470703125
+            },
+            {
+                "id": "9e2cbcfb-9a44-4d24-8f59-4a4f3e06109f",
+                "zone_name": "\u00c7oktan Se\u00e7meli",
+                "zone_type": "\u00c7oktan Se\u00e7meli",
+                "zone_points": 5.0,
+                "num_options": 5,
+                "left": 129.45236206054688,
+                "top": 2011.2974853515625,
+                "width": 57.49684143066406,
+                "height": 256.3360595703125,
+                "context_rect": {
+                    "left": -8.261758805870517,
+                    "top": 1869.2229298282045,
+                    "width": 1245.4601399849805,
+                    "height": 433.74233730820197
+                }
+            },
+            {
+                "id": "de75bc88-0e69-4b0e-a668-16a4e9136e06",
+                "zone_name": "\u00c7oktan Se\u00e7meli",
+                "zone_type": "\u00c7oktan Se\u00e7meli",
+                "zone_points": 5.0,
+                "num_options": 5,
+                "left": 1278.0447998046875,
+                "top": 3169.363037109375,
+                "width": 56.2965087890625,
+                "height": 259.304931640625
+            },
+            {
+                "id": "37ebcbb5-ef0c-435f-81cf-2b778c1e51e1",
+                "zone_name": "\u00c7oktan Se\u00e7meli",
+                "zone_type": "\u00c7oktan Se\u00e7meli",
+                "zone_points": 5.0,
+                "num_options": 5,
+                "left": 1384.761962890625,
+                "top": 2070.5341796875,
+                "width": 63.0279541015625,
+                "height": 360.817626953125
+            },
+            {
+                "id": "ce26c500-66c9-4605-954b-0c79cd7e13b8",
+                "zone_name": "Yeni Soru",
+                "zone_type": "\u00d6\u011frenci Bilgisi",
+                "left": 42.828957649632756,
+                "top": 297.4233170113386,
+                "width": 688.336696669908,
+                "height": 75.1886145404664
+            },
+            {
+                "id": "5f963a56-2532-46b8-b5f2-3531987884f9",
+                "zone_name": "Yeni Soru",
+                "zone_type": "\u00d6\u011frenci Bilgisi",
+                "left": 72.80922800437565,
+                "top": 376.89482731676827,
+                "width": 659.5659478043445,
+                "height": 55.67764494452257
+            }
+        ],
+        "1": [
+            {
+                "id": "dec96825-c788-4139-9ad0-f1e8f77d3c8b",
+                "zone_name": "\u00c7oktan Se\u00e7meli",
+                "zone_type": "\u00c7oktan Se\u00e7meli",
+                "zone_points": 5.0,
+                "num_options": 5,
+                "left": 1318.8917236328125,
+                "top": 2468.47216796875,
+                "width": 58.27978515625,
+                "height": 439.416748046875
+            },
+            {
+                "id": "c378f82e-6dfc-4049-b359-0a81433f8ce7",
+                "zone_name": "\u00c7oktan Se\u00e7meli",
+                "zone_type": "\u00c7oktan Se\u00e7meli",
+                "zone_points": 5.0,
+                "num_options": 5,
+                "left": 1318.192626953125,
+                "top": 2515.426513671875,
+                "width": 59.8416748046875,
+                "height": 583.734375
+            },
+            {
+                "id": "d5ba6b23-1f75-4369-953c-f1540e56e451",
+                "zone_name": "\u00c7oktan Se\u00e7meli",
+                "zone_type": "\u00c7oktan Se\u00e7meli",
+                "zone_points": 5.0,
+                "num_options": 5,
+                "left": 53.86091995239258,
+                "top": 1163.868408203125,
+                "width": 61.23434066772461,
+                "height": 248.686279296875
+            },
+            {
+                "id": "cf6a408e-aed3-4b1c-9109-4d019fa9345a",
+                "zone_name": "\u00c7oktan Se\u00e7meli",
+                "zone_type": "\u00c7oktan Se\u00e7meli",
+                "zone_points": 5.0,
+                "num_options": 5,
+                "left": 54.31268310546875,
+                "top": 369.88470458984375,
+                "width": 57.80320739746094,
+                "height": 255.5140380859375
+            },
+            {
+                "id": "0e2430d7-a475-4608-a997-855a5b510f98",
+                "zone_name": "\u00c7oktan Se\u00e7meli",
+                "zone_type": "\u00c7oktan Se\u00e7meli",
+                "zone_points": 5.0,
+                "num_options": 5,
+                "left": 91.88327026367188,
+                "top": 2012.1263427734375,
+                "width": 57.227447509765625,
+                "height": 254.7576904296875
+            },
+            {
+                "id": "39af3262-9597-4881-88f5-1470b246fd84",
+                "zone_name": "\u00c7oktan Se\u00e7meli",
+                "zone_type": "\u00c7oktan Se\u00e7meli",
+                "zone_points": 5.0,
+                "num_options": 5,
+                "left": 129.36900329589844,
+                "top": 2630.8623046875,
+                "width": 56.93287658691406,
+                "height": 254.41943359375
+            },
+            {
+                "id": "6840565d-9dc9-4697-b733-ffcb7bd62131",
+                "zone_name": "\u00c7oktan Se\u00e7meli",
+                "zone_type": "\u00c7oktan Se\u00e7meli",
+                "zone_points": 5.0,
+                "num_options": 5,
+                "left": 1333.8251953125,
+                "top": 613.8992309570312,
+                "width": 59.480712890625,
+                "height": 256.7060546875
+            },
+            {
+                "id": "4f0dfd53-f75e-4d0c-80b1-c809e62ee021",
+                "zone_name": "\u00c7oktan Se\u00e7meli",
+                "zone_type": "\u00c7oktan Se\u00e7meli",
+                "zone_points": 5.0,
+                "num_options": 5,
+                "left": 1272.577392578125,
+                "top": 1900.003173828125,
+                "width": 54.9005126953125,
+                "height": 249.609375
+            }
+        ],
+        "2": [
+            {
+                "id": "9fbef905-42a7-4c4b-b3f2-b2d3261fc513",
+                "zone_name": "\u00c7oktan Se\u00e7meli",
+                "zone_type": "\u00c7oktan Se\u00e7meli",
+                "zone_points": 5.0,
+                "num_options": 5,
+                "left": 151.6269989013672,
+                "top": 382.6384582519531,
+                "width": 57.26148986816406,
+                "height": 254.46481323242188
+            },
+            {
+                "id": "ff3b156c-b649-428d-879b-e4e09f6ad784",
+                "zone_name": "\u00c7oktan Se\u00e7meli",
+                "zone_type": "\u00c7oktan Se\u00e7meli",
+                "zone_points": 5.0,
+                "num_options": 5,
+                "left": 55.48088455200195,
+                "top": 1053.10205078125,
+                "width": 59.83015823364258,
+                "height": 253.416015625
+            },
+            {
+                "id": "1a750c37-5236-476b-9835-4128a9af76b0",
+                "zone_name": "\u00c7oktan Se\u00e7meli",
+                "zone_type": "\u00c7oktan Se\u00e7meli",
+                "zone_points": 5.0,
+                "num_options": 5,
+                "left": 1330.8128662109375,
+                "top": 1195.7479248046875,
+                "width": 59.930908203125,
+                "height": 383.9334716796875
+            },
+            {
+                "id": "c85ab5b4-207b-4add-b875-529af8c1dd69",
+                "zone_name": "\u00c7oktan Se\u00e7meli",
+                "zone_type": "\u00c7oktan Se\u00e7meli",
+                "zone_points": 5.0,
+                "num_options": 5,
+                "left": 170.22628784179688,
+                "top": 2685.719970703125,
+                "width": 59.30207824707031,
+                "height": 249.183349609375
+            },
+            {
+                "id": "11f32468-483e-49a0-91d5-fcb9f3bf4e83",
+                "zone_name": "\u00c7oktan Se\u00e7meli",
+                "zone_type": "\u00c7oktan Se\u00e7meli",
+                "zone_points": 5.0,
+                "num_options": 5,
+                "left": 1351.2481689453125,
+                "top": 2709.42822265625,
+                "width": 62.5821533203125,
+                "height": 256.38916015625
+            }
+        ]
+    }
+}

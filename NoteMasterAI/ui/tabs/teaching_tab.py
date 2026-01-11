@@ -8,6 +8,7 @@ from PyQt5.QtCore import Qt
 from ui.widgets.canvas import CanvasWidget
 from logic.model_manager import ModelManager
 from logic.utils import run_yolo_detection, load_yolo_model, pil_to_qpixmap
+from logic.pdf_utils import pdf_to_images
 from logic.transfer_server import set_reference_image
 from logic.constants import YOLO_CLASS_MAPPING, DEFAULT_SETTINGS
 

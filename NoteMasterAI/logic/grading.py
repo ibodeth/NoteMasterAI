@@ -15,21 +15,32 @@ SERVICE_ACCOUNT_FILE = "service-account.json"
 def setup_apis(api_key=None, service_account_path=None):
     """
     API anahtarlarını ayarlar.
-    
-    Args:
-        api_key (str): Gemini API Key. If None, checks GEMINI_API_KEY env var.
-        service_account_path (str): Path to service-account.json. If None, checks default or env var.
-        
-    Returns:
-        (vision_client, gemini_model) tuple, or (None, None) on failure.
+    Öncelik:
+    1. Argüman olarak gelenler
+    2. secrets.json dosyasındaki kayıtlı değerler
+    3. Ortam değişkenleri (Environment Vars)
     """
+    
+    # Load from secrets.json if available and args are missing
+    secrets_path = "secrets.json"
+    if os.path.exists(secrets_path):
+        try:
+            with open(secrets_path, "r") as f:
+                data = json.load(f)
+                if not api_key:
+                    api_key = data.get("gemini_api_key")
+                if not service_account_path:
+                    service_account_path = data.get("service_account_path")
+        except: pass
+
     # 1. Google Cloud Vision (Göz)
-    if service_account_path is None:
-        if os.path.exists(SERVICE_ACCOUNT_FILE):
-            service_account_path = SERVICE_ACCOUNT_FILE
-        else:
-            # Check env var if file not found in CWD
-            pass 
+    # Check env or default if still None
+    if not service_account_path:
+        # Fallback to env or existing default file check
+        if os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
+             service_account_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+        elif os.path.exists(SERVICE_ACCOUNT_FILE):
+             service_account_path = SERVICE_ACCOUNT_FILE
             
     if not service_account_path or not os.path.exists(service_account_path):
         print(f"HATA: Service account file bulunamadı: {service_account_path}")

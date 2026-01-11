@@ -14,6 +14,12 @@ def main():
     # font.setFamily("Segoe UI")
     # app.setFont(font)
     
+    # Credential Check
+    from ui.credential_dialog import check_credentials_at_startup
+    if not check_credentials_at_startup():
+        print("Kurulum tamamlanmadı veya iptal edildi.")
+        sys.exit(0)
+
     window = MainWindow()
     window.show()
     
