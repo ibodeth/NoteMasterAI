@@ -124,19 +124,19 @@ class VerificationTab(QWidget):
         
         # Tools
         btn_select = QPushButton("👆")
-        btn_select.setToolTip("Seçim Modu")
+        btn_select.setToolTip("Selection Mode")
         btn_select.setFixedWidth(40)
         btn_select.clicked.connect(lambda: self.set_tool("transform"))
         nav_bar.addWidget(btn_select)
         
         btn_pen = QPushButton("✏️")
-        btn_pen.setToolTip("Kalem Modu")
+        btn_pen.setToolTip("Pen Mode")
         btn_pen.setFixedWidth(40)
         btn_pen.clicked.connect(lambda: self.set_tool("pen"))
         nav_bar.addWidget(btn_pen)
         
         btn_eraser = QPushButton("🧹")
-        btn_eraser.setToolTip("Silgi Modu")
+        btn_eraser.setToolTip("Eraser Mode")
         btn_eraser.setFixedWidth(40)
         btn_eraser.clicked.connect(lambda: self.set_tool("eraser"))
         nav_bar.addWidget(btn_eraser)
@@ -177,19 +177,19 @@ class VerificationTab(QWidget):
         self.sidebar.setStyleSheet("background-color: #252526; border-left: 1px solid #3e3e42;")
         r_layout = QVBoxLayout(self.sidebar)
         
-        r_layout.addWidget(QLabel("📝 Cevap Anahtarı", styleSheet="font-size: 16px; font-weight: bold; margin-bottom: 10px;"))
+        r_layout.addWidget(QLabel("📝 Answer Key", styleSheet="font-size: 16px; font-weight: bold; margin-bottom: 10px;"))
         
-        self.grp_info = QGroupBox("Seçili Soru")
+        self.grp_info = QGroupBox("Selected Question")
         form = QFormLayout(self.grp_info)
         self.lbl_zone_name = QLabel("-")
         self.lbl_zone_type = QLabel("-")
-        form.addRow("Etiket:", self.lbl_zone_name)
-        form.addRow("Tip:", self.lbl_zone_type)
+        form.addRow("Label:", self.lbl_zone_name)
+        form.addRow("Type:", self.lbl_zone_type)
         r_layout.addWidget(self.grp_info)
         
         r_layout.addSpacing(20)
         
-        self.grp_answer = QGroupBox("Doğru Cevap")
+        self.grp_answer = QGroupBox("Correct Answer")
         ans_layout = QVBoxLayout(self.grp_answer)
         
         self.inp_mcq = QComboBox()
@@ -198,34 +198,34 @@ class VerificationTab(QWidget):
         ans_layout.addWidget(self.inp_mcq)
         
         self.inp_tf = QComboBox()
-        self.inp_tf.addItems(["", "Doğru", "Yanlış"])
+        self.inp_tf.addItems(["", "True", "False"])
         self.inp_tf.currentTextChanged.connect(self.on_answer_changed)
         ans_layout.addWidget(self.inp_tf)
         
         self.inp_text = QLineEdit()
-        self.inp_text.setPlaceholderText("Cevabı yazın...")
+        self.inp_text.setPlaceholderText("Write answer...")
         self.inp_text.textChanged.connect(self.on_answer_changed)
         ans_layout.addWidget(self.inp_text)
         
         r_layout.addWidget(self.grp_answer)
         
         # New: AI Note Box
-        self.grp_ai = QGroupBox("AI için Özel Not")
+        self.grp_ai = QGroupBox("Special Note for AI")
         ai_layout = QVBoxLayout(self.grp_ai)
         self.inp_ai_note = QLineEdit()
-        self.inp_ai_note.setPlaceholderText("Örn: 'Sadece sayıya bak'")
+        self.inp_ai_note.setPlaceholderText("e.g. 'Look only at number'")
         self.inp_ai_note.textChanged.connect(self.on_ai_note_changed)
         ai_layout.addWidget(self.inp_ai_note)
         r_layout.addWidget(self.grp_ai)
         
         r_layout.addStretch()
         
-        btn_reset = QPushButton("🗑️ CEVAP ANAHTARINI SİL")
+        btn_reset = QPushButton("🗑️ DELETE ANSWER KEY")
         btn_reset.setStyleSheet("background-color: #d9534f; color: white; height: 40px; font-weight: bold; margin-bottom: 10px;")
         btn_reset.clicked.connect(self.delete_answer_key)
         r_layout.addWidget(btn_reset)
         
-        btn_save = QPushButton("💾 KAYDET (Tüm Değişiklikler)")
+        btn_save = QPushButton("💾 SAVE (All Changes)")
         btn_save.setStyleSheet("background-color: #28a745; color: white; height: 50px; font-weight: bold;")
         btn_save.clicked.connect(self.save_model_data)
         r_layout.addWidget(btn_save)
@@ -240,8 +240,8 @@ class VerificationTab(QWidget):
     def delete_answer_key(self):
         # 1. Confirm
         from PyQt5.QtWidgets import QMessageBox
-        res = QMessageBox.question(self, "Onay", 
-            "Mevcut cevap anahtarını (görsel çizimler ve oluşturulan PDF) silmek istediğinize emin misiniz?\n\nNot: Bu işlem dijital cevapları (A, B vb.) silmez, sadece çizimleri siler.",
+        res = QMessageBox.question(self, "Confirm", 
+            "Are you sure you want to delete the current answer key (visual drawings and generated PDF)?\n\nNote: This action does not delete digital answers (A, B, etc.), it only deletes the drawings.",
             QMessageBox.Yes | QMessageBox.No)
             
         if res != QMessageBox.Yes: return
@@ -249,7 +249,7 @@ class VerificationTab(QWidget):
         # 2. Delete key.pdf
         import os
         name = self.cmb_models.currentText()
-        if not name or name == "Seçiniz...": return
+        if not name or name == "Select...": return
         
         model_dir = os.path.join(self.manager.models_dir, name)
         key_pdf = os.path.join(model_dir, "key.pdf")
@@ -258,7 +258,7 @@ class VerificationTab(QWidget):
             try:
                 os.remove(key_pdf)
             except Exception as e:
-                QMessageBox.critical(self, "Hata", f"Dosya silinemedi: {e}")
+                QMessageBox.critical(self, "Error", f"Could not delete file: {e}")
                 return
         
         # 3. Clear memory
@@ -268,7 +268,7 @@ class VerificationTab(QWidget):
         
         # 4. Reload
         self.load_page(self.current_page_idx)
-        QMessageBox.information(self, "Başarılı", "Cevap anahtarı silindi. Yeni bir tane oluşturabilirsiniz.")
+        QMessageBox.information(self, "Success", "Answer key deleted. You can create a new one.")
 
     def save_model_data(self):
         self.save_current_drawings_to_memory() # Persist current view
@@ -278,12 +278,12 @@ class VerificationTab(QWidget):
         import json
         
         name = self.cmb_models.currentText()
-        if not name or name == "Seçiniz...": return
+        if not name or name == "Select...": return
 
         # 1. Generate Key PDF (Visual)
         # We need to iterate ALL pages, render them, and save
         
-        progress = QProgressDialog("Cevap Anahtarı Oluşturuluyor (PDF)...", None, 0, len(self.blank_images), self)
+        progress = QProgressDialog("Generating Answer Key (PDF)...", None, 0, len(self.blank_images), self)
         progress.setWindowModality(Qt.WindowModal)
         progress.show()
         
@@ -346,10 +346,10 @@ class VerificationTab(QWidget):
             with open(cfg_path, "w") as f:
                 json.dump(self.current_model_config, f, indent=4)
                 
-            QMessageBox.information(self, "Başarılı", "Cevap anahtarı ve model kaydedildi.")
+            QMessageBox.information(self, "Success", "Answer key and model saved.")
             
         except Exception as e:
-            QMessageBox.critical(self, "Hata", str(e))
+            QMessageBox.critical(self, "Error", str(e))
         finally:
             progress.close()
 
@@ -357,7 +357,7 @@ class VerificationTab(QWidget):
         current = self.cmb_models.currentText()
         self.cmb_models.blockSignals(True)
         self.cmb_models.clear()
-        self.cmb_models.addItem("Seçiniz...", None)
+        self.cmb_models.addItem("Select...", None)
         
         models = self.manager.list_models()
         self.cmb_models.addItems(models)
@@ -367,7 +367,7 @@ class VerificationTab(QWidget):
 
     def on_model_changed(self):
         name = self.cmb_models.currentText()
-        if name == "Seçiniz...": return
+        if name == "Select...": return
         
         config, images = self.manager.load_model(name)
         if not config: return
@@ -388,7 +388,7 @@ class VerificationTab(QWidget):
             if i < len(self.blank_images):
                 target_size = self.blank_images[i].size # (w, h)
                 if k_img.size != target_size:
-                    print(f"Uyarı: Key image boyutu uyumsuz ({k_img.size} vs {target_size}). Yeniden boyutlandırılıyor.")
+                    print(f"Warning: Key image size mismatch ({k_img.size} vs {target_size}). Resizing.")
                     k_img = k_img.resize(target_size, Image.Resampling.LANCZOS)
             self.key_images.append(k_img)
         
@@ -428,12 +428,12 @@ class VerificationTab(QWidget):
         self.inp_ai_note.blockSignals(False)
         
         t = z.get("zone_type")
-        if t == "Çoktan Seçmeli":
+        if t == "Multiple Choice":
             self.inp_mcq.setVisible(True)
             self.inp_mcq.blockSignals(True)
             self.inp_mcq.setCurrentText(curr_ans)
             self.inp_mcq.blockSignals(False)
-        elif t == "Doğru-Yanlış":
+        elif t == "True-False":
             self.inp_tf.setVisible(True)
             self.inp_tf.blockSignals(True)
             self.inp_tf.setCurrentText(curr_ans)

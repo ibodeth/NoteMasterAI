@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  notemaster-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: notemaster-server
+    ports:
+      - "5000:5000"
+      - "5005:5005/udp"
+    environment:
+      - NOTE_MASTER_SCANS_DIR=/scans
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    volumes:
+      - ./scans:/scans
+    restart: unless-stopped

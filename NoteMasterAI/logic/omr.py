@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 def _get_omr_scores(thresh_image, num_options, layout):
-    """(YARDIMCI) Görüntüyü Dikey/Yatay böl ve puanları döndür."""
+    """(HELPER) Split image vertically/horizontally and return scores."""
     h, w = thresh_image.shape
     scores = []
 
@@ -13,7 +13,7 @@ def _get_omr_scores(thresh_image, num_options, layout):
             end_x = (i + 1) * option_width if i < num_options - 1 else w 
             split = thresh_image[0:h, start_x:end_x]
             yield split 
-    else: # dikey
+    else: # dikey (vertical)
         option_height = h // num_options
         for i in range(num_options):
             start_y = i * option_height
@@ -22,7 +22,7 @@ def _get_omr_scores(thresh_image, num_options, layout):
             yield split 
 
 def process_omr_zone_by_area(image, num_options=5, layout="dikey"):
-    """ÇOKTAN SEÇMELİ için: Alan (cv2.contourArea) ile okur."""
+    """For MULTIPLE CHOICE: Reads by area (cv2.contourArea)."""
     if image is None or image.size == 0: return -1, []
 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -60,7 +60,7 @@ def process_omr_zone_by_area(image, num_options=5, layout="dikey"):
     return selected_index, scores
 
 def process_omr_zone_by_blackness(image, num_options=2, layout="dikey"):
-    """DOĞRU-YANLIŞ için: Siyahlık (cv2.countNonZero) ile okur."""
+    """For TRUE-FALSE: Reads by blackness/pixel count (cv2.countNonZero)."""
     if image is None or image.size == 0: return -1, []
 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)

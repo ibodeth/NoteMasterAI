@@ -308,7 +308,7 @@ class CanvasWidget(QGraphicsView): # Renamed to match old class name but using n
                 zone_data = {
                     "id": str(uuid.uuid4()),
                     "zone_name": "Yeni Soru",
-                    "zone_type": "Tanımsız",
+                    "zone_type": "Undefined",
                     "zone_points": 5.0,
                     "num_options": 5,
                     "left": rect.x(), "top": rect.y(), 
@@ -367,4 +367,3 @@ class CanvasWidget(QGraphicsView): # Renamed to match old class name but using n
     def zoom_to_fit(self):
         if self._scene.itemsBoundingRect().width() > 0:
             self.fitInView(self._scene.itemsBoundingRect(), Qt.KeepAspectRatio)
-

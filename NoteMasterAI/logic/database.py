@@ -95,7 +95,7 @@ def save_zone_result(db_path, student_id, z_res):
     """
     z_res dict expected:
     {
-        "name": "Soru 1",
+        "name": "Question 1",
         "type": "Klasik",
         "score": 5.0,
         "max_points": 10.0, # Need to pass this

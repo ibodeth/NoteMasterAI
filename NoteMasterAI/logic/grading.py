@@ -14,11 +14,11 @@ SERVICE_ACCOUNT_FILE = "service-account.json"
 
 def setup_apis(api_key=None, service_account_path=None):
     """
-    API anahtarlarını ayarlar.
-    Öncelik:
-    1. Argüman olarak gelenler
-    2. secrets.json dosyasındaki kayıtlı değerler
-    3. Ortam değişkenleri (Environment Vars)
+    Configures API keys.
+    Priority:
+    1. Arguments passed to function
+    2. Registered values in secrets.json
+    3. Environment variables
     """
     
     # Load from secrets.json if available and args are missing
@@ -33,49 +33,45 @@ def setup_apis(api_key=None, service_account_path=None):
                     service_account_path = data.get("service_account_path")
         except: pass
 
-    # 1. Google Cloud Vision (Göz)
-    # Check env or default if still None
+    # 1. Google Cloud Vision
     if not service_account_path:
-        # Fallback to env or existing default file check
         if os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
              service_account_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
         elif os.path.exists(SERVICE_ACCOUNT_FILE):
              service_account_path = SERVICE_ACCOUNT_FILE
             
     if not service_account_path or not os.path.exists(service_account_path):
-        print(f"HATA: Service account file bulunamadı: {service_account_path}")
+        print(f"ERROR: Service account file not found: {service_account_path}")
         return None, None
     
     try:
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = service_account_path
         vision_client = vision.ImageAnnotatorClient()
     except Exception as e:
-        print(f"Google Cloud Vision başlatılamadı: {e}")
+        print(f"Failed to start Google Cloud Vision: {e}")
         return None, None
     
-    # 2. Gemini (Beyin)
+    # 2. Gemini
     if not api_key:
         api_key = os.environ.get("GEMINI_API_KEY")
     
     if not api_key:
-        print("HATA: `GEMINI_API_KEY` bulunamadı.")
+        print("ERROR: `GEMINI_API_KEY` not found.")
         return None, None
             
     try:
         genai.configure(api_key=api_key)
-        # Using the same model as in app.py
         gemini_model = genai.GenerativeModel("gemini-3-flash-preview") 
     except Exception as e:
-        print(f"HATA: Gemini API anahtarı okunamadı: {e}")
+        print(f"ERROR: Gemini API key could not be read: {e}")
         return None, None
         
-    print("Google Cloud Vision ve Gemini API başarıyla ayarlandı.")
+    print("Google Cloud Vision and Gemini API set up successfully.")
     return vision_client, gemini_model
 
 def get_text_from_image(_vision_client, image_cv2):
     """
-    Bir CV2 görüntüsü alır, Google Cloud Vision HTR
-    ile okur ve algılanan metni döndürür.
+    Takes a CV2 image, reads with Google Cloud Vision HTR, and returns detected text.
     """
     if image_cv2 is None:
         return ""
@@ -88,66 +84,66 @@ def get_text_from_image(_vision_client, image_cv2):
         response = _vision_client.document_text_detection(image=image)
         
         if response.error.message:
-            print(f"Cloud Vision Hatası: {response.error.message}")
+            print(f"Cloud Vision Error: {response.error.message}")
             return ""
             
         return response.full_text_annotation.text
         
     except Exception as e:
-        print(f"Cloud Vision API çağrılırken hata: {e}")
+        print(f"Error calling Cloud Vision API: {e}")
         return ""
 
 def get_gemini_score(_gemini_model, ogrenci_metni, ideal_metin, baglam_metni, soru_tipi, sorunun_gorseli=None, ogrenci_gorseli=None, teacher_prompt="", question_prompt="", preprocess=True):
     """
-    Öğrenci cevabını puanlar.
+    Grades student answer.
     
     Args:
-        sorunun_gorseli (PIL.Image or bytes, optional): Sorunun orijinal metnini/görselini içeren kırpılmış alan.
-        ogrenci_gorseli (PIL.Image, optional): Öğrencinin cevabını içeren görsel (crop).
+        sorunun_gorseli (PIL.Image or bytes, optional): Cropped area containing original question text/image.
+        ogrenci_gorseli (PIL.Image, optional): Cropped student answer image.
     """
     
     # 1. Base Prompt with Relaxed Rules
     system_prompt = f"""
-Sen, "NoteMaster" adlı adil, dikkatli ve öğrenci dostu bir öğretmen yapay zekasısın.
+You are an objective, careful, and student-friendly teacher AI named "NoteMaster".
 
-*** 1. GÖRSEL ALGILAMA VE HALÜSİNASYON (REALITY CHECK) ***
-Cevap anahtarı senin algını kör etmesin. Gözlerinle gördüğün gerçeği inkar etme.
-*   **SENARYO:** Cevap Anahtarı "5" diyor. Görselde net bir "31" veya "(31)" veya "A" var.
-*   **HATALI TEPKİ:** "Öğrenci 5 yazmış, harika." (BUNU YAPARSAN SİSTEM ÇÖKER!)
-*   **DOĞRU TEPKİ:** "Okunan: 31. Puan: 0. Gerekçe: Öğrenci 31 yazmış ama cevap 5."
-*   **KURAL:** Görseldeki metin, cevap anahtarından farklıysa, ASLA "aslında doğru yazmak istedi" diye düşünme. Ne görüyorsan onu raporla.
+*** 1. VISUAL PERCEPTION & REALITY CHECK ***
+Do not let the answer key blind your perception. Do not deny the reality you see with your own eyes.
+*   **SCENARIO:** Answer Key says "5". In the image there is a clear "31" or "(31)" or "A".
+*   **INCORRECT RESPONSE:** "Student wrote 5, great." (DO NOT DO THIS!)
+*   **CORRECT RESPONSE:** "Read: 31. Score: 0. Reason: Student wrote 31 but correct is 5."
+*   **RULE:** If the text in the image is different from the answer key, NEVER assume "they actually meant to write the correct answer". Report what you see.
 
-*** 2. KISMİ PUANLAMA (PARTIAL CREDIT) - ÇOK ÖNEMLİ ***
-Öğrencinin tek bir hatası yüzünden tüm emeğini çöpe atma.
-*   **Çok Maddeli Sorular (Tablo, Boşluk Doldurma, Eşleştirme):**
-    *   Eğer soruda birden fazla alt cevap varsa (örn: Tabloda 4 kutucuk işaretlenecekse), başarı oranına göre puan ver.
-    *   Örnek: 4 maddeden 3'ü doğru, 1'i yanlış. -> Başarı %75. -> **Puan: 0.75** (veya 0.50). ASLA 0.0 VERME!
-    *   Örnek: 10 maddelik tablo, 1 hata var. -> Başarı %90. -> **Puan: 1.0** (Küçük hataları affet) veya **0.75**.
-*   **AI Çözsün Soruları:**
-    *   Bu sorularda "Ya Hep Ya Hiç" kuralı YOKTUR. Doğru gidiş yollarına, kısmi doğrulara puan ver.
+*** 2. PARTIAL CREDIT - VERY IMPORTANT ***
+Do not discard all student effort for a single mistake.
+*   **Multi-item questions (Table, Fill in the Blank, Matching):**
+    *   If there are multiple parts (e.g. 4 boxes in a table), award points proportionally.
+    *   Example: 3 out of 4 parts correct, 1 wrong. -> Success 75%. -> **Score: 0.75** (or 0.50). NEVER GIVE 0.0!
+    *   Example: 10 items in a table, 1 mistake. -> Success 90%. -> **Score: 1.0** (forgive small errors) or **0.75**.
+*   **AI Solve Questions:**
+    *   There is no "All or Nothing" rule. Award points for correct steps and partial methods.
 
-*** 3. OKUMA VE YORUMLAMA ***
-*   **OCR:** [OCR Metni] bazen saçmalar. Görseldeki el yazısı esastır.
-*   **Niyet Okuma:** "Nolur puan ver" gibi yazılar CEVAP DEĞİLDİR. Bunlara 0 ver.
+*** 3. READING & INTERPRETATION ***
+*   **OCR:** [OCR Text] can sometimes be garbled. The handwriting in the image is final.
+*   **Intent:** Texts like "please give points" are not answers. Give them 0.
 
-**JSON Çıktı Formatı:**
+**JSON Output Format:**
 {{
-    "okunan_cevap": "Görselde görülen metin (Yorum katma)",
+    "okunan_cevap": "Text seen in image (objective)",
     "puan": [0.0, 0.25, 0.50, 0.75, 1.0], 
-    "gerekce": "Kısa açıklama (Örn: '3 madde doğru, 1 yanlış. Kısmi puan.')",
+    "gerekce": "Short explanation (e.g. '3 items correct, 1 wrong. Partial credit.')",
     "kendi_bilgisi_kullanildi": false
 }}
 
-*** 4. ÖZEL TALİMATLAR ***
-*   **[GENEL ÖĞRETMEN NOTU]:** "{teacher_prompt}" 
-    > (Eğer öğretmenin bu notunda özel bir talimat varsa, yukarıdaki kuralları esnetebilirsin. Örneğin 'Yazım yanlışlarını görmezden gel' derse, puan kırma.)
-*   **[SORUYA ÖZEL NOT]:** "{question_prompt}"
-    > (Bu soru için özel bir kriter belirtilmişse, buna KESİNLİKLE uy.)
+*** 4. SPECIAL INSTRUCTIONS ***
+*   **[GENERAL TEACHER NOTE]:** "{teacher_prompt}" 
+    > (If this note has specific instructions, you can bend the rules. E.g. 'Ignore spelling mistakes' -> Do not deduct points.)
+*   **[QUESTION SPECIAL NOTE]:** "{question_prompt}"
+    > (Follow this strictly.)
 
 ---
-[SORU TİPİ]: {soru_tipi}
-[CEVAP ANAHTARI]: {ideal_metin}
-[DERS NOTLARI]: {baglam_metni}
+[QUESTION TYPE]: {soru_tipi}
+[ANSWER KEY]: {ideal_metin}
+[LECTURE NOTES]: {baglam_metni}
     """
 
     # 2. Add Content Parts
@@ -155,8 +151,7 @@ Cevap anahtarı senin algını kör etmesin. Gözlerinle gördüğün gerçeği 
     
     # Add Question Context Image if available
     if sorunun_gorseli:
-        # Preprocess? Maybe not context, but let's keep it readable
-        content_parts.append("\n\n[SORUNUN KENDİSİ (BAĞLAM GÖRSELİ)]:")
+        content_parts.append("\n\n[QUESTION CONTEXT IMAGE]:")
         content_parts.append(sorunun_gorseli)
         
     # Add Student Answer Image (CRITICAL UPDATE)
@@ -166,10 +161,10 @@ Cevap anahtarı senin algını kör etmesin. Gözlerinle gördüğün gerçeği 
         processed_cv = utils.preprocess_for_gemini(cv_img)
         processed_pil = Image.fromarray(cv2.cvtColor(processed_cv, cv2.COLOR_BGR2RGB))
         
-        content_parts.append("\n\n[ÖĞRENCİ CEVABI GÖRSELİ (Bunun içindeki yazıyı oku)]:")
+        content_parts.append("\n\n[STUDENT ANSWER IMAGE (Read handwriting inside this)]:")
         content_parts.append(processed_pil)
         
-    content_parts.append(f"\n\n[ÖĞRENCİ CEVABI (OCR Metni - Hatalı olabilir)]:\n{ogrenci_metni}")
+    content_parts.append(f"\n\n[STUDENT ANSWER (OCR Text - May contain errors)]:\n{ogrenci_metni}")
     
     # 3. Call Gemini
     try:
@@ -188,64 +183,37 @@ Cevap anahtarı senin algını kör etmesin. Gözlerinle gördüğün gerçeği 
             if len(json_output) > 0 and isinstance(json_output[0], dict):
                 json_output = json_output[0]
             else:
-                # Fallback if list structure is unexpected
                 json_output = {
                     "okunan_cevap": ogrenci_metni, 
                     "puan": 0.0, 
-                    "gerekce": "AI yanıtı anlaşılamadı (Liste formatı)", 
+                    "gerekce": "AI response not understood (List format)", 
                     "kendi_bilgisi_kullanildi": False
                 }
 
         if not isinstance(json_output, dict):
-             raise ValueError(f"AI yanıtı beklenen formatta değil: {type(json_output)}")
+             raise ValueError(f"AI response not in expected format: {type(json_output)}")
 
         # Safety for Student Info
-        if soru_tipi == "Öğrenci Bilgisi":
+        if soru_tipi == "Student Info":
             json_output["puan"] = 0.0
             
         return json_output
 
     except Exception as e:
-        print(f"Gemini API hatası: {e}")
+        print(f"Gemini API error: {e}")
         try:
-            print(f"Gemini Ham Yanıtı: {response.prompt_feedback}")
+            print(f"Gemini Raw Response: {response.prompt_feedback}")
         except:
             pass
         
         return {
             "okunan_cevap": ogrenci_metni,
             "puan": 0.0,
-            "gerekce": f"Hata: {str(e)}",
+            "gerekce": f"Error: {str(e)}",
             "kendi_bilgisi_kullanildi": False
         }
 
-    # 2. Add Content Parts
-    content_parts = [system_prompt]
-    
-    # Add Question Context Image if available
-    if sorunun_gorseli:
-        # Preprocess? Maybe not context, but let's keep it readable
-        content_parts.append("\n\n[SORUNUN KENDİSİ (BAĞLAM GÖRSELİ)]:")
-        content_parts.append(sorunun_gorseli)
-        
-    # Add Student Answer Image (CRITICAL UPDATE)
-    if ogrenci_gorseli:
-        # Convert PIL to CV2 for preprocessing
-        cv_img = cv2.cvtColor(np.array(ogrenci_gorseli), cv2.COLOR_RGB2BGR)
-        
-        if preprocess:
-             processed_cv = utils.preprocess_for_gemini(cv_img)
-        else:
-             processed_cv = cv_img    
-             
-        processed_pil = Image.fromarray(cv2.cvtColor(processed_cv, cv2.COLOR_BGR2RGB))
-        
-        content_parts.append("\n\n[ÖĞRENCİ CEVABI GÖRSELİ (Bunun içindeki yazıyı oku)]:")
-        content_parts.append(processed_pil)
-        
-    content_parts.append(f"\n\n[ÖĞRENCİ CEVABI (OCR Metni - Hatalı olabilir)]:\n{ogrenci_metni}")
-
-def get_ai_comparison_result(gemini_model, student_crop, key_crop, question_type="Çoktan Seçmeli", preprocess=True):
+def get_ai_comparison_result(gemini_model, student_crop, key_crop, question_type="Multiple Choice", preprocess=True):
     """
     Compares Student Answer vs Key Answer using Gemini Vision.
     Returns: { "match": bool, "student_val": str, "key_val": str, "reason": str }
@@ -266,38 +234,38 @@ def get_ai_comparison_result(gemini_model, student_crop, key_crop, question_type
     k_pil = Image.fromarray(cv2.cvtColor(k_proc, cv2.COLOR_BGR2RGB))
     
     prompt = f"""
-    Sen keskin gözlü bir optik okuma asistanısın.
-    Sana İKİ görsel veriyorum:
-    1. [CEVAP ANAHTARI]: Doğru şıkkın temiz bir şekilde işaretlendiği referans.
-    2. [ÖĞRENCİ CEVABI]: Öğrencinin sınav kağıdından kesilen parça.
+    You are a sharp-eyed optical mark recognition assistant.
+    I am giving you TWO images:
+    1. [ANSWER KEY]: Reference where the correct option is clearly marked.
+    2. [STUDENT ANSWER]: Piece cut from the student's exam sheet.
     
-    GÖREVİN:
-    Öğrenci, Cevap Anahtarı ile AYNI seçeneği mi işaretlemiş?
+    YOUR TASK:
+    Did the student mark the SAME option as the Answer Key?
     
-    SORU TİPİ: {question_type}
+    QUESTION TYPE: {question_type}
     
-    ANALİZ ADIMLARI:
-    1. **Anahtar Tespiti**: Cevap Anahtarı görselinde hangi şıkkın (A, B, C, D, E veya Doğru/Yanlış) işaretli olduğunu bul. Bu senin REFERANSINDIR.
-    2. **Öğrenci Tespiti**: Öğrenci görselinde hangi şıkkın işaretli olduğunu bul.
-       - İşaretleme türü daire içine alma, çarpı (X), tik (✓) veya karalama olabilir.
-       - Eğer öğrenci bir şıkkı işaretleyip sonra üzerini karalayıp BAŞKA bir şıkkı net bir şekilde işaretlediyse, SON KARARINI (net olanı) kabul et.
-       - Silik veya çok hafif izleri "silinmiş" kabul et. En koyu ve belirgin işareti baz al.
-    3. **Karşılaştırma**:
-       - Tespit edilen [Öğrenci Cevabı] == [Referans] ise "match": true.
-       - Değilse "match": false.
-       - Öğrenci birden fazla şıkkı EŞİT derecede işaretlediyse (kararsız) "match": false döndür.
+    ANALYSIS STEPS:
+    1. **Key Detection**: Find which option (A, B, C, D, E or True/False) is marked in the Answer Key image. This is your REFERENCE.
+    2. **Student Detection**: Find which option is marked in the Student image.
+       - Marking types can be circling, crossing (X), checking (✓), or shading.
+       - If the student marked an option but then crossed it out and clearly marked another option, accept their FINAL decision.
+       - Faint or erased marks are considered "erased". Base on the darkest, most prominent mark.
+    3. **Comparison**:
+       - If detected [Student Answer] == [Reference], then "match": true.
+       - Otherwise, "match": false.
+       - If the student marked multiple options equally (undecided), return "match": false.
     
-    ÇIKTI (Sadece JSON):
+    OUTPUT (JSON only):
     {{
-        "key_val": "Tespit edilen anahtar (Örn: 'C')",
-        "student_val": "Tespit edilen öğrenci cevabı (Örn: 'A' veya 'C' veya 'BOŞ')",
+        "key_val": "Detected key (e.g. 'C')",
+        "student_val": "Detected student answer (e.g. 'A' or 'C' or 'EMPTY')",
         "match": true/false,
-        "reason": "Kısa ve net açıklama (Örn: 'Anahtar C, Öğrenci A yapmış.' veya 'Öğrenci silip C yapmış, doğru.')"
+        "reason": "Short and clear explanation (e.g. 'Key C, Student marked A.' or 'Student erased and marked C, correct.')"
     }}
     """
     
     try:
-        response = gemini_model.generate_content([prompt, "CEVAP ANAHTARI:", k_pil, "ÖĞRENCİ CEVABI:", s_pil])
+        response = gemini_model.generate_content([prompt, "ANSWER KEY:", k_pil, "STUDENT ANSWER:", s_pil])
         text = response.text.replace("```json", "").replace("```", "").strip()
         return json.loads(text)
     except Exception as e:
@@ -315,22 +283,22 @@ def parse_student_info(gemini_model, header_image_pil):
     processed_pil = Image.fromarray(cv2.cvtColor(processed_cv, cv2.COLOR_BGR2RGB))
 
     prompt = """
-    Bu görsel bir sınav kağıdının "Öğrenci Bilgileri" kısmıdır.
+    This image is the "Student Information" section of an exam paper.
     
-    GÖREV:
-    Görseldeki EL YAZISINI oku.
+    TASK:
+    Read the HANDWRITING in the image.
     
-    ÇOK ÖNEMLİ KURALLAR (HALLÜSİNASYON ENGELLEME):
-    1. SADECE görselde AÇIKÇA görülen yazıları oku.
-    2. Eğer bir alan (İsim, Sınıf veya No) BOŞ ise veya sadece matbu yazı (Adı Soyadı vb.) varsa ve el yazısı YOKSA, o alanı BOŞ STRING ("") olarak döndür.
-    3. ASLA rastgele isim veya numara uydurma. Emin değilsen "" döndür.
-    4. "Adı Soyadı" gibi etiketleri okuma, sadece yanına/altına yazılan DEĞERLERİ oku.
+    CRITICAL RULES (ANTI-HALLUCINATION):
+    1. ONLY read texts clearly visible in the image.
+    2. If a field (Name, Class, or No) is EMPTY or only has printed text (Name Surname etc.) and NO handwriting, return that field as an EMPTY STRING ("").
+    3. NEVER hallucinate names or numbers. If unsure, return "".
+    4. Do not read labels like "Name Surname", only read the VALUES written next to/below them.
     
-    Çıktı Formatı (JSON):
+    Output Format (JSON):
     {
-        "name": "Okunan İsim (Yoksa boş)",
-        "class_name": "Okunan Sınıf (Yoksa boş)",
-        "number": "Okunan Numara (Sadece rakam, yoksa boş)"
+        "name": "Read Name (empty if none)",
+        "class_name": "Read Class (empty if none)",
+        "number": "Read Number (digits only, empty if none)"
     }
     """
     
@@ -338,7 +306,6 @@ def parse_student_info(gemini_model, header_image_pil):
         response = gemini_model.generate_content([prompt, processed_pil])
         text = response.text.replace("```json", "").replace("```", "").strip()
         data = json.loads(text)
-        # Normalize keys just in case
         return {
             "name": data.get("name", "").strip(),
             "class_name": data.get("class_name", "").strip(),

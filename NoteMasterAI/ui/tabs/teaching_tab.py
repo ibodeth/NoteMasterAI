@@ -52,13 +52,13 @@ class TeachingTab(QWidget):
         sidebar.setStyleSheet("background-color: #252526; border-right: 1px solid #3e3e42;")
         sb_layout = QVBoxLayout(sidebar)
         
-        sb_layout.addWidget(QLabel("📂 Kayıtlı Modeller", styleSheet="font-size: 16px; font-weight: bold; margin-bottom: 10px;"))
+        sb_layout.addWidget(QLabel("📂 Saved Models", styleSheet="font-size: 16px; font-weight: bold; margin-bottom: 10px;"))
         self.model_list = QListWidget()
         self.model_list.setFrameShape(0)
         self.model_list.itemClicked.connect(self.load_selected_model)
         sb_layout.addWidget(self.model_list)
         
-        btn_refresh = QPushButton("🔄 Yenile")
+        btn_refresh = QPushButton("🔄 Refresh")
         btn_refresh.clicked.connect(self.refresh_model_list)
         sb_layout.addWidget(btn_refresh)
         layout.addWidget(sidebar)
@@ -68,13 +68,13 @@ class TeachingTab(QWidget):
         m_layout = QVBoxLayout(main_area)
         m_layout.setAlignment(Qt.AlignCenter)
         
-        title = QLabel("🏫 NoteMaster Model Yöneticisi")
+        title = QLabel("🏫 NoteMaster Model Manager")
         title.setStyleSheet("font-size: 32px; font-weight: bold; color: #007acc;")
         m_layout.addWidget(title)
         
         m_layout.addSpacing(40)
         
-        btn_new = QPushButton("➕ Yeni Model Oluştur")
+        btn_new = QPushButton("➕ Create New Model")
         btn_new.setFixedSize(250, 60)
         btn_new.setStyleSheet("font-size: 18px; background-color: #007acc; color: white; border-radius: 4px;")
         btn_new.setCursor(Qt.PointingHandCursor)
@@ -127,13 +127,13 @@ class TeachingTab(QWidget):
         c_layout.addSpacing(15)
         
         # Tools
-        self.btn_add_rect = QPushButton("➕ Kutu Çiz")
+        self.btn_add_rect = QPushButton("➕ Draw Box")
         self.btn_add_rect.setStyleSheet("background-color: #007acc; color: white; padding: 6px;")
         self.btn_add_rect.clicked.connect(lambda: self.canvas.set_tool("rect"))
         c_layout.addWidget(self.btn_add_rect)
         
         # Properties Group
-        self.grp_props = QGroupBox("Özellikler")
+        self.grp_props = QGroupBox("Properties")
         f_layout = QFormLayout(self.grp_props)
         
         self.inp_name = QLineEdit()
@@ -151,29 +151,29 @@ class TeachingTab(QWidget):
         self.inp_opts.setRange(2, 10)
         self.inp_opts.valueChanged.connect(self.update_zone_data)
         
-        f_layout.addRow("Etiket:", self.inp_name)
-        f_layout.addRow("Tip:", self.inp_type)
-        self.lbl_points = QLabel("Puan:")
+        f_layout.addRow("Label:", self.inp_name)
+        f_layout.addRow("Type:", self.inp_type)
+        self.lbl_points = QLabel("Points:")
         f_layout.addRow(self.lbl_points, self.inp_points)
-        self.lbl_opts = QLabel("Şık:") # Keep reference to hide/show
+        self.lbl_opts = QLabel("Option:") # Keep reference to hide/show
         f_layout.addRow(self.lbl_opts, self.inp_opts)
         
         c_layout.addWidget(self.grp_props)
         
-        self.btn_delete = QPushButton("🗑️ Sil")
+        self.btn_delete = QPushButton("🗑️ Delete")
         self.btn_delete.setStyleSheet("background-color: #d9534f; color: white;")
         self.btn_delete.clicked.connect(self.delete_selected_zone)
         c_layout.addWidget(self.btn_delete)
         
         # New: Question Context
         c_layout.addSpacing(15)
-        self.btn_context = QPushButton("📷 Soru Bağlamı Ekle")
+        self.btn_context = QPushButton("📷 Add Question Context")
         self.btn_context.setStyleSheet("background-color: #6f42c1; color: white; padding: 6px;")
         self.btn_context.clicked.connect(self.enter_context_mode)
         self.btn_context.setEnabled(False) 
         c_layout.addWidget(self.btn_context)
         
-        self.btn_delete_context = QPushButton("🗑️ Bağlamı Sil")
+        self.btn_delete_context = QPushButton("🗑️ Delete Context")
         self.btn_delete_context.setStyleSheet("background-color: #d63384; color: white; padding: 6px;")
         self.btn_delete_context.clicked.connect(self.delete_context_data)
         self.btn_delete_context.setVisible(False)
@@ -183,19 +183,19 @@ class TeachingTab(QWidget):
         self.lbl_context_preview.setFixedSize(300, 100) # Preview size
         self.lbl_context_preview.setStyleSheet("border: 1px dashed #555;")
         self.lbl_context_preview.setAlignment(Qt.AlignCenter)
-        self.lbl_context_preview.setText("Bağlam Görseli")
+        self.lbl_context_preview.setText("Context Image")
         self.lbl_context_preview.setVisible(False)
         c_layout.addWidget(self.lbl_context_preview)
         
         c_layout.addStretch()
         
         # Actions
-        btn_save = QPushButton("💾 KAYDET VE ÇIK")
+        btn_save = QPushButton("💾 SAVE AND EXIT")
         btn_save.setStyleSheet("background-color: #28a745; color: white; height: 40px;")
         btn_save.clicked.connect(self.save_model_and_exit)
         c_layout.addWidget(btn_save)
         
-        btn_cancel = QPushButton("❌ İptal")
+        btn_cancel = QPushButton("❌ Cancel")
         btn_cancel.clicked.connect(lambda: self.stack.setCurrentIndex(0))
         c_layout.addWidget(btn_cancel)
         
@@ -214,7 +214,7 @@ class TeachingTab(QWidget):
             self.model_list.addItem(m)
 
     def start_creation_wizard(self):
-        f_blank, _ = QFileDialog.getOpenFileName(self, "Boş Sınav (PDF)", "", "PDF Files (*.pdf)")
+        f_blank, _ = QFileDialog.getOpenFileName(self, "Blank Exam (PDF)", "", "PDF Files (*.pdf)")
         if not f_blank: return
         
         # Simplified: No Key/Slide PDF needed
@@ -225,7 +225,7 @@ class TeachingTab(QWidget):
         with open(f_blank, "rb") as f: self.raw_blank_bytes = f.read()
             
         # Convert
-        dlg = QProgressDialog("PDF Dönüştürülüyor...", None, 0, 0, self)
+        dlg = QProgressDialog("Converting PDF...", None, 0, 0, self)
         dlg.setWindowModality(Qt.WindowModal)
         dlg.show()
         
@@ -235,8 +235,8 @@ class TeachingTab(QWidget):
             
             # AI Check
             if self.yolo_model:
-                reply = QMessageBox.question(self, "AI Otomatik Tespit", 
-                                             "Soru alanlarını otomatik tespit etmek ister misiniz?",
+                reply = QMessageBox.question(self, "AI Auto Detection", 
+                                             "Do you want to automatically detect question areas?",
                                              QMessageBox.Yes | QMessageBox.No)
                 if reply == QMessageBox.Yes:
                        for i, img in enumerate(self.current_model_images):
@@ -247,7 +247,7 @@ class TeachingTab(QWidget):
             self.load_editor(0)
             
         except Exception as e:
-            QMessageBox.critical(self, "Hata", str(e))
+            QMessageBox.critical(self, "Error", str(e))
         finally:
             dlg.close()
 
@@ -319,19 +319,19 @@ class TeachingTab(QWidget):
             self.inp_opts.blockSignals(True)
             
             self.inp_name.setText(item.zone_data.get("zone_name", ""))
-            self.inp_type.setCurrentText(item.zone_data.get("zone_type", "Tanımsız"))
+            self.inp_type.setCurrentText(item.zone_data.get("zone_type", "Undefined"))
             self.inp_points.setValue(float(item.zone_data.get("zone_points", 0)))
             self.inp_opts.setValue(int(item.zone_data.get("num_options", 5)))
             
             # Visibility Check (Options)
-            is_mcq = item.zone_data.get("zone_type") == "Çoktan Seçmeli"
+            is_mcq = item.zone_data.get("zone_type") == "Multiple Choice"
             self.inp_opts.setVisible(is_mcq)
             self.lbl_opts.setVisible(is_mcq)
 
             # Visibility Check (Points)
             z_type = item.zone_data.get("zone_type")
-            # Hide points for "Tanımsız" (Undefined) and "Öğrenci Bilgisi" (Student Info)
-            show_points = z_type not in ["Tanımsız", "Öğrenci Bilgisi"]
+            # Hide points for "Undefined" (Undefined) and "Student Info" (Student Info)
+            show_points = z_type not in ["Undefined", "Student Info"]
             self.inp_points.setVisible(show_points)
             self.lbl_points.setVisible(show_points)
             
@@ -362,7 +362,7 @@ class TeachingTab(QWidget):
                     ))
                 except Exception as e:
                     print(f"Preview Error: {e}")
-                    self.lbl_context_preview.setText("Hata")
+                    self.lbl_context_preview.setText("Error")
             else:
                 self.btn_delete_context.setVisible(False)
                 self.lbl_context_preview.setVisible(False)
@@ -394,25 +394,25 @@ class TeachingTab(QWidget):
             
             # Apply defaults
             defs = DEFAULT_SETTINGS
-            if text == "Çoktan Seçmeli":
+            if text == "Multiple Choice":
                 self.selected_item.zone_data["zone_points"] = defs["mcq_points"]
                 self.selected_item.zone_data["num_options"] = defs["mcq_opts"]
-            elif text == "Doğru-Yanlış":
+            elif text == "True-False":
                  self.selected_item.zone_data["zone_points"] = defs["tf_points"]
-            elif text == "Eşleştirme":
+            elif text == "Matching":
                  self.selected_item.zone_data["zone_points"] = defs["match_points"]
-            elif text == "Klasik Soru" or text == "Klasik":
+            elif text == "Classic Question" or text == "Klasik":
                  self.selected_item.zone_data["zone_points"] = defs["classic_points"]
                  
-            elif text == "AI Çözsün":
+            elif text == "AI Solve":
                  self.selected_item.zone_data["zone_points"] = defs["classic_points"] # Default to classic points
                  
-            elif text == "Öğrenci Bilgisi" or text == "Tanımsız":
+            elif text == "Student Info" or text == "Undefined":
                  self.selected_item.zone_data.pop("zone_points", None)
                  self.selected_item.zone_data.pop("num_options", None)
 
             # Clean up options for non-MCQ types generally
-            if text != "Çoktan Seçmeli":
+            if text != "Multiple Choice":
                  self.selected_item.zone_data.pop("num_options", None)
             
             # Refresh UI to show new values/visibility
@@ -447,8 +447,8 @@ class TeachingTab(QWidget):
                     self.context_temp_hidden_zones.append(item)
 
         # 2. Change Tool
-        QMessageBox.information(self, "Mod: Soru Bağlamı", 
-            "Lütfen ekrandaki 'Soru Metni' veya 'Görseli'ni içeren alanı çiziniz.\nÇizim bitince otomatik kaydedilecektir.")
+        QMessageBox.information(self, "Mode: Question Context", 
+            "Please draw the box containing the 'Question Text' or 'Visual'.\nIt will be saved automatically when drawing is complete.")
             
         self.canvas.set_tool("rect")
         self.is_context_mode = True
@@ -492,15 +492,15 @@ class TeachingTab(QWidget):
             if self.target_zone_item:
                 self.on_zone_selected(self.target_zone_item)
             
-            QMessageBox.information(self, "Başarılı", "Soru bağlamı kaydedildi!")
+            QMessageBox.information(self, "Success", "Question context saved!")
 
     def sanitize_zone_data(self, zone):
         # Rule 1: num_options only for MCQ
-        if zone.get("zone_type") != "Çoktan Seçmeli":
+        if zone.get("zone_type") != "Multiple Choice":
             zone.pop("num_options", None)
             
         # Rule 2: No points for Undefined or Student Info
-        if zone.get("zone_type") in ["Tanımsız", "Öğrenci Bilgisi"]:
+        if zone.get("zone_type") in ["Undefined", "Student Info"]:
             zone.pop("zone_points", None)
             
         return zone
@@ -509,7 +509,7 @@ class TeachingTab(QWidget):
         if self.selected_item and "context_rect" in self.selected_item.zone_data:
             self.selected_item.zone_data.pop("context_rect")
             self.on_zone_selected(self.selected_item) # Refresh UI
-            QMessageBox.information(self, "Bilgi", "Soru bağlamı silindi.")
+            QMessageBox.information(self, "Information", "Question context deleted.")
 
     def save_model_and_exit(self):
         self.save_current_view_zones()
@@ -520,8 +520,8 @@ class TeachingTab(QWidget):
                 self.sanitize_zone_data(z)
         
         from PyQt5.QtWidgets import QInputDialog
-        default_name = self.current_model_config["model_name"] if self.current_model_config else "Yeni Model"
-        name, ok = QInputDialog.getText(self, "Model Kaydet", "Model Adı:", text=default_name)
+        default_name = self.current_model_config["model_name"] if self.current_model_config else "New Model"
+        name, ok = QInputDialog.getText(self, "Save Model", "Model Name:", text=default_name)
         
         if ok and name:
             try:
@@ -529,9 +529,8 @@ class TeachingTab(QWidget):
                 self.manager.save_model(name, self.current_model_images, self.current_zones, 
                                         None, None)
                                         
-                QMessageBox.information(self, "Başarılı", "Model kaydedildi.")
+                QMessageBox.information(self, "Success", "Model saved.")
                 self.stack.setCurrentIndex(0)
                 self.refresh_model_list()
             except Exception as e:
-                QMessageBox.critical(self, "Hata", f"Kaydetme hatası: {str(e)}")
-
+                QMessageBox.critical(self, "Error", f"Save error: {str(e)}")

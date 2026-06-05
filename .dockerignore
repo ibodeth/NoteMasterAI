@@ -1,0 +1,15 @@
+.git
+.gitignore
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+secrets.json
+poppler/
+NoteMasterMobile/
+NoteMasterAI/Models/
+scans/
+debug_output/
+*.pt
+*.db

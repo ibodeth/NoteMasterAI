@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QFormLayout, QLineEdit, QCombo
 class ZoneDialog(QDialog):
     def __init__(self, parent=None, default_data=None):
         super().__init__(parent)
-        self.setWindowTitle("Cevap Alanı Düzenle")
+        self.setWindowTitle("Edit Answer Zone")
         self.resize(400, 300)
         
         self.data = default_data or {}
@@ -13,15 +13,15 @@ class ZoneDialog(QDialog):
         
         # 1. Zone Name
         self.name_edit = QLineEdit(self.data.get("zone_name", ""))
-        self.name_edit.setPlaceholderText("Örn: Soru 1")
-        form.addRow("Soru Adı / ID:", self.name_edit)
+        self.name_edit.setPlaceholderText("e.g. Question 1")
+        form.addRow("Question Name / ID:", self.name_edit)
         
         # 2. Zone Type
         self.type_combo = QComboBox()
-        self.type_combo.addItems(["Klasik Soru", "Çoktan Seçmeli", "Doğru-Yanlış", 
-                                "Boşluk Doldurma", "Eşleştirme", 
-                                "Öğrenci Bilgisi", "Tanımsız", "AI Gerekli"])
-        current_type = self.data.get("zone_type", "Çoktan Seçmeli")
+        self.type_combo.addItems(["Classic Question", "Multiple Choice", "True-False", 
+                                "Fill in the Blank", "Matching", 
+                                "Student Info", "Undefined", "AI Required"])
+        current_type = self.data.get("zone_type", "Multiple Choice")
         index = self.type_combo.findText(current_type)
         if index >= 0:
             self.type_combo.setCurrentIndex(index)
@@ -29,13 +29,13 @@ class ZoneDialog(QDialog):
              # Fallback if text differs slightly
              self.type_combo.setCurrentIndex(0)
              
-        form.addRow("Soru Tipi:", self.type_combo)
+        form.addRow("Question Tipi:", self.type_combo)
         
         # 3. Dynamic Options (Num Options, Layout)
         self.options_spin = QSpinBox()
         self.options_spin.setRange(2, 10)
         self.options_spin.setValue(self.data.get("num_options", 5))
-        form.addRow("Şık Sayısı:", self.options_spin)
+        form.addRow("Option Count:", self.options_spin)
         
         # Layout (Dikey/Yatay)
         self.layout_group = QButtonGroup(self)
@@ -53,11 +53,11 @@ class ZoneDialog(QDialog):
         else:
             self.radio_yatay.setChecked(True)
             
-        form.addRow("Düzen:", layout_hbox)
+        form.addRow("Layout:", layout_hbox)
         
         # 4. Teacher Note for AI
         self.ai_note = QLineEdit(self.data.get("ai_note", ""))
-        self.ai_note.setPlaceholderText("AI için bu soruya özel not (örn: 'Sadece sayıya bak')")
+        self.ai_note.setPlaceholderText("Special note for AI (e.g. 'Look only at number')")
         form.addRow("AI Notu:", self.ai_note)
         
         layout.addLayout(form)
@@ -73,12 +73,12 @@ class ZoneDialog(QDialog):
         self.update_fields(self.type_combo.currentText())
 
     def update_fields(self, type_text):
-        is_omr = type_text in ["Çoktan Seçmeli", "Doğru-Yanlış"]
+        is_omr = type_text in ["Multiple Choice", "True-False"]
         self.options_spin.setEnabled(is_omr)
         self.radio_dikey.setEnabled(is_omr)
         self.radio_yatay.setEnabled(is_omr)
         
-        if type_text == "Doğru-Yanlış":
+        if type_text == "True-False":
             self.options_spin.setValue(2)
             self.options_spin.setEnabled(False)
 

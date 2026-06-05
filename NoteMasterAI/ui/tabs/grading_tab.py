@@ -46,7 +46,7 @@ class GradingWorker(QThread):
         # 1. Setup APIs
         vision_client, gemini_model = grading.setup_apis()
         if not vision_client or not gemini_model:
-            self.error_occurred.emit("API Kurulumu Başarısız! Lütfen service-account.json ve API Key kontrol edin.")
+            self.error_occurred.emit("API Setup Failed! Please check your service-account.json and API Key.")
             return
 
         # 2. Parse Context & Answer Key
@@ -112,7 +112,7 @@ class GradingWorker(QThread):
                     pct = int((done_count / total_count) * 100) if total_count > 0 else 100
                     
                     # Log Status
-                    self.student_progress.emit(u_name, f"AI Değerlendiriyor ({done_count}/{total_count})", pct)
+                    self.student_progress.emit(u_name, f"AI Evaluating ({done_count}/{total_count})", pct)
 
                 details_dict = st['details']
                 
@@ -230,7 +230,7 @@ class GradingWorker(QThread):
             # Save Text Report logic (same as before, Simplified)
             # ...
             
-            self.student_progress.emit(u_name, "Tamamlandı", 100)
+            self.student_progress.emit(u_name, "Completed", 100)
             self.result_ready.emit(file_result)
             
             with tracker_lock:
@@ -244,12 +244,12 @@ class GradingWorker(QThread):
             unit_name = os.path.basename(unit_path)
             
             # Initial UI Update
-            self.student_progress.emit(unit_name, "Hazırlanıyor...", 0)
+            self.student_progress.emit(unit_name, "Preparing...", 0)
             
             align_sem.acquire() # Block if too many active loading
             
             try:
-                self.student_progress.emit(unit_name, "Görüntüler İşleniyor...", 5)
+                self.student_progress.emit(unit_name, "Processing Images...", 5)
                 
                 # Load Images
                 student_images = []
@@ -271,7 +271,7 @@ class GradingWorker(QThread):
                         student_images = pdf_to_images(f.read())
                         
                 if not student_images:
-                    self.error_occurred.emit(f"{unit_name}: Görüntü yüklenemedi")
+                    self.error_occurred.emit(f"{unit_name}: Image could not be loaded")
                     continue
 
                 student_db_id = database.save_student_header(self.db_path, unit_name, unit_path)
@@ -279,10 +279,10 @@ class GradingWorker(QThread):
                 # Calculate Total Tasks (Zones)
                 total_tasks = 0
                 for p_idx in range(len(student_images)):
-                     total_tasks += len([z for z in self.state.zones.get(p_idx, []) if z.get("zone_type") != "Tanımsız"])
+                     total_tasks += len([z for z in self.state.zones.get(p_idx, []) if z.get("zone_type") != "Undefined"])
                 
                 if total_tasks == 0:
-                     self.student_progress.emit(unit_name, "Soru Bulunamadı", 100)
+                     self.student_progress.emit(unit_name, "No Questions Found", 100)
                      continue
 
                 # Initialize Tracker
@@ -301,7 +301,7 @@ class GradingWorker(QThread):
                 for p_idx, p_img in enumerate(student_images):
                     if not self.is_running: break
                     
-                    self.student_progress.emit(unit_name, f"Sayfa {p_idx+1} Hizalanıyor...", 10)
+                    self.student_progress.emit(unit_name, f"Aligning Page {p_idx+1}...", 10)
                     
                     if p_img.mode != 'RGB': p_img = p_img.convert('RGB')
                     stud_cv = cv2.cvtColor(np.array(p_img), cv2.COLOR_RGB2BGR)
@@ -329,7 +329,7 @@ class GradingWorker(QThread):
                     for z in page_zones:
                         z_name = z.get("zone_name", "Unknown")
                         z_type = z.get("zone_type", "Klasik")
-                        if z_type == "Tanımsız": continue
+                        if z_type == "Undefined": continue
                         
                         x, y, w, h = int(z['left']), int(z['top']), int(z['width']), int(z['height'])
                         
@@ -361,7 +361,7 @@ class GradingWorker(QThread):
                         }
                         
                         # Student Info
-                        if z_type == "Öğrenci Bilgisi":
+                        if z_type == "Student Info":
                               def parse_info_task(model, img):
                                   try:
                                       return {"type": "info", "data": grading.parse_student_info(model, img)}
@@ -382,12 +382,12 @@ class GradingWorker(QThread):
                         except:
                             max_pts_val = 0.0
                         
-                        if max_pts_val <= 0 and z_type == "AI Çözsün": max_pts_val = 10.0
+                        if max_pts_val <= 0 and z_type == "AI Solve": max_pts_val = 10.0
                             
                         # Key Crop Logic (same as before)
                         key_crop_cv = None
                         key_crop_pil = None
-                        if z_type in ["Çoktan Seçmeli", "Doğru-Yanlış"]:
+                        if z_type in ["Multiple Choice", "True-False"]:
                             if p_idx < len(answer_key_images):
                                 try:
                                     k_page = np.array(answer_key_images[p_idx].convert('RGB'))
@@ -430,7 +430,7 @@ class GradingWorker(QThread):
 
                         # Define Task Function
                         def grade_task(model, s_crop, k_crop, c_crop, z_type_str, ideal, ctx_txt, t_prompt, q_note):
-                            if z_type_str in ["Çoktan Seçmeli", "Doğru-Yanlış"]:
+                            if z_type_str in ["Multiple Choice", "True-False"]:
                                 return {"type": "comparison", "data": grading.get_ai_comparison_result(model, s_crop, k_crop, z_type_str, preprocess=False)}
                             else:
                                 txt = "" 
@@ -501,28 +501,28 @@ class GradingTab(QWidget):
         
         hbox_ctrl.addSpacing(20)
         
-        self.btn_load_folder = QPushButton("📂 Öğrenci Klasörü Seç")
+        self.btn_load_folder = QPushButton("📂 Select Student Folder")
         self.btn_load_folder.clicked.connect(self.load_student_folder)
         hbox_ctrl.addWidget(self.btn_load_folder)
         
         # Server Status Label
-        self.lbl_server_status = QLabel("Mobil Sunucu: 🔴 Kapalı")
+        self.lbl_server_status = QLabel("Mobile Server: 🔴 Closed")
         self.lbl_server_status.setStyleSheet("color: #FF5555; font-weight: bold; margin-left: 20px;")
         hbox_ctrl.addWidget(self.lbl_server_status)
         
-        self.lbl_folder = QLabel("Seçilen: Yok")
+        self.lbl_folder = QLabel("Selected: None")
         # --- Teacher Prompt (New) ---
         prompt_layout = QVBoxLayout()
-        prompt_layout.addWidget(QLabel("📝 Öğretmen Talimatları (AI için Ekstra Yönergeler):"))
+        prompt_layout.addWidget(QLabel("📝 Teacher Instructions (Extra Guidelines for AI):"))
         self.txt_teacher_prompt = QTextEdit()
-        self.txt_teacher_prompt.setPlaceholderText("Örn: 'Bu bir 5.sınıf sınavıdır. Yazım hatalarını görmezden gel. Cevaplar İngilizce olmalı. Tam cümlelere artı puan ver.'")
+        self.txt_teacher_prompt.setPlaceholderText("e.g. 'This is a 5th grade exam. Ignore spelling errors. Answers should be in English. Give extra points for complete sentences.'")
         self.txt_teacher_prompt.setMaximumHeight(80)
         prompt_layout.addWidget(self.txt_teacher_prompt)
         
         layout.addLayout(prompt_layout)
         # ----------------------------
         
-        self.btn_start = QPushButton("▶ Puanlamayı Başlat")
+        self.btn_start = QPushButton("▶ Start Grading")
         self.btn_start.setEnabled(False)
         self.btn_start.clicked.connect(self.start_grading)
         
@@ -546,7 +546,7 @@ class GradingTab(QWidget):
         
         self.table = QTableWidget()
         self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderLabels(["Öğrenci", "Puan", "Durum", "İlerleme"])
+        self.table.setHorizontalHeaderLabels(["Student", "Score", "Status", "Progress"])
         self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
         self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
@@ -561,7 +561,7 @@ class GradingTab(QWidget):
         right_layout = QVBoxLayout(right_widget)
         right_layout.setContentsMargins(0,0,0,0)
         
-        right_layout.addWidget(QLabel("CANLI İZLEME EKRANI", styleSheet="font-weight:bold; color:#007acc;"))
+        right_layout.addWidget(QLabel("LIVE MONITORING SCREEN", styleSheet="font-weight:bold; color:#007acc;"))
         
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
@@ -580,7 +580,7 @@ class GradingTab(QWidget):
         current = self.cmb_models.currentText()
         self.cmb_models.blockSignals(True)
         self.cmb_models.clear()
-        self.cmb_models.addItem("Model Seçiniz...", None)
+        self.cmb_models.addItem("Select Model...", None)
         
         models = self.manager.list_models()
         self.cmb_models.addItems(models)
@@ -592,7 +592,7 @@ class GradingTab(QWidget):
 
     def on_model_selected(self):
         name = self.cmb_models.currentText()
-        if not name or name == "Model Seçiniz...":
+        if not name or name == "Select Model...":
             self.state.reset() # clear state
             return
             
@@ -629,7 +629,7 @@ class GradingTab(QWidget):
             print(f"DEBUG: Model '{name}' loaded. {len(images)} pages, {len(self.state.zones)} zone pages.")
 
     def load_student_folder(self):
-        folder = QFileDialog.getExistingDirectory(self, "Öğrenci Klasörü (Root) Seç")
+        folder = QFileDialog.getExistingDirectory(self, "Select Student Folder (Root)")
         if folder:
              self.process_loaded_folder(folder)
 
@@ -647,7 +647,7 @@ class GradingTab(QWidget):
                 if imgs:
                     self.student_files.append(full_path)
 
-        self.lbl_folder.setText(f"{len(self.student_files)} öğrenci (dosya/klasör) bulundu.")
+        self.lbl_folder.setText(f"{len(self.student_files)} students (files/folders) found.")
         if self.student_files:
             self.btn_start.setEnabled(True)
             
@@ -658,7 +658,7 @@ class GradingTab(QWidget):
         # Update Server Path
         import logic.transfer_server as srv
         srv.UPLOAD_DIR = folder
-        print(f"Sunucu Kayıt Klasörü Güncellendi: {folder}")
+        print(f"Server save folder updated: {folder}")
         
         # Setup Watcher
         if self.current_watched_folder:
@@ -682,7 +682,7 @@ class GradingTab(QWidget):
                     if imgs:
                         self.student_files.append(full_path)
             
-            self.lbl_folder.setText(f"{len(self.student_files)} öğrenci (dosya/klasör) bulundu.")
+            self.lbl_folder.setText(f"{len(self.student_files)} students (files/folders) found.")
             if self.student_files:
                 self.btn_start.setEnabled(True)
 
@@ -706,8 +706,8 @@ class GradingTab(QWidget):
 
         # 3. Ask User
         key, ok = QInputDialog.getText(
-            self, "API Anahtarı Eksik", 
-            "Lütfen Google Gemini API Anahtarınızı giriniz:\n(Bu anahtar secrets.json dosyasına kaydedilecektir.)",
+            self, "API Key Missing", 
+            "Please enter your Google Gemini API Key:\n(This key will be saved to secrets.json file.)",
             QLineEdit.Password
         )
         if ok and key:
@@ -717,14 +717,14 @@ class GradingTab(QWidget):
                 with open(secrets_path, "w") as f:
                     json.dump({"gemini_api_key": key.strip()}, f)
             except Exception as e:
-                QMessageBox.warning(self, "Uyarı", f"Anahtar kaydedilemedi: {e}")
+                QMessageBox.warning(self, "Warning", f"Key could not be saved: {e}")
             return True
             
         return False
 
     def start_grading(self):
         if not self.check_api_key():
-            QMessageBox.critical(self, "Hata", "Puanlama için API anahtarı gereklidir.")
+            QMessageBox.critical(self, "Error", "API key is required for grading.")
             return
 
         self.table.setRowCount(0)
@@ -753,7 +753,7 @@ class GradingTab(QWidget):
         self.worker.student_progress.connect(self.update_student_progress)
         self.worker.result_ready.connect(self.add_result_row)
         self.worker.live_update.connect(self.on_live_update) 
-        self.worker.error_occurred.connect(lambda e: QMessageBox.critical(self, "Hata", e))
+        self.worker.error_occurred.connect(lambda e: QMessageBox.critical(self, "Error", e))
         self.worker.finished_all.connect(self.on_finished)
         self.worker.start()
 
@@ -820,7 +820,7 @@ class GradingTab(QWidget):
             pix_s = cv2_to_pixmap(data["student_crop"])
             if pix_s: 
                 lbl_s.setPixmap(pix_s)
-                lbl_s.setToolTip("Öğrenci Cevabı")
+                lbl_s.setToolTip("Student Answer")
                 imgs_layout.addWidget(lbl_s)
                 
         # 2. Key Image
@@ -829,7 +829,7 @@ class GradingTab(QWidget):
             pix_k = cv2_to_pixmap(data["key_crop"])
             if pix_k:
                 lbl_k.setPixmap(pix_k)
-                lbl_k.setToolTip("Cevap Anahtarı")
+                lbl_k.setToolTip("Answer Key")
                 # Add a separator or label?
                 imgs_layout.addWidget(QLabel(" VS ", styleSheet="color:#888; font-weight:bold;"))
                 imgs_layout.addWidget(lbl_k)
@@ -840,19 +840,19 @@ class GradingTab(QWidget):
         info_widget = QWidget()
         info_l = QVBoxLayout(info_widget)
         
-        q_name = QLabel(f"<b>Soru:</b> {data['question']}")
+        q_name = QLabel(f"<b>Question:</b> {data['question']}")
         q_name.setStyleSheet("color: white; font-size: 14px;")
         info_l.addWidget(q_name)
         
         # Student Text
         s_txt = data.get('student_text', '?')
-        s_ans = QLabel(f"<b>Öğrenci:</b> {s_txt}")
+        s_ans = QLabel(f"<b>Student:</b> {s_txt}")
         s_ans.setStyleSheet("color: #ffa500;") # Orange
         info_l.addWidget(s_ans)
         
         # Correct Answer
         c_txt = data.get('correct_answer', '?')
-        c_ans = QLabel(f"<b>Doğru:</b> {c_txt}")
+        c_ans = QLabel(f"<b>True:</b> {c_txt}")
         c_ans.setStyleSheet("color: #4caf50;") # Green
         info_l.addWidget(c_ans)
         
@@ -893,9 +893,9 @@ class GradingTab(QWidget):
         score_item.setTextAlignment(Qt.AlignCenter)
         self.table.setItem(row_idx, 1, score_item)
         
-        details = res.get("error", "Tamamlandı")
+        details = res.get("error", "Completed")
         if "zones" in res and not res.get("error"):
-             details = "Tamamlandı" # Don't clutter UI with all zones, user can click for details if implemented later
+             details = "Completed" # Don't clutter UI with all zones, user can click for details if implemented later
 
         self.table.setItem(row_idx, 2, QTableWidgetItem(details))
         
@@ -905,8 +905,8 @@ class GradingTab(QWidget):
 
     def on_finished(self):
         self.btn_start.setEnabled(True)
-        self.progress_bar.setFormat("Tamamlandı.")
-        QMessageBox.information(self, "Tamamlandı", "Tüm dosyalar işlendi.")
+        self.progress_bar.setFormat("Completed.")
+        QMessageBox.information(self, "Completed", "All files processed.")
 
     def log(self, message):
         lbl = QLabel(message)
@@ -915,7 +915,7 @@ class GradingTab(QWidget):
         self.log_layout.insertWidget(0, lbl) # Add to top
     def log_server_msg(self, msg):
         self.log(f"[Server] {msg}")
-        if "Sunucu Başlatıldı" in msg:
+        if "Server Started" in msg:
              try:
                  parts = msg.split(": ")
                  if len(parts) >= 2:
@@ -936,7 +936,7 @@ class GradingTab(QWidget):
         elif not force_start and self.transfer_server.running:
             self.transfer_server.stop()
             if hasattr(self, 'lbl_server_status'):
-                self.lbl_server_status.setText("Mobil Sunucu: 🔴 Kapalı")
+                self.lbl_server_status.setText("Mobile Server: 🔴 Closed")
                 self.lbl_server_status.setStyleSheet("color: #FF5555; font-weight: bold; margin-left: 20px;")
 
     def on_image_received(self, img, status):
@@ -948,7 +948,7 @@ class GradingTab(QWidget):
             
             # Header
             color = "#4CAF50" if status == "aligned" else "#F44336"
-            lbl_st = QLabel(f"Gelen Görüntü: {status.upper()}")
+            lbl_st = QLabel(f"Incoming Image: {status.upper()}")
             lbl_st.setStyleSheet(f"color: {color}; font-weight: bold; font-size: 14px;")
             l.addWidget(lbl_st)
             
@@ -978,7 +978,7 @@ class GradingTab(QWidget):
 
     def on_transfer_finished(self, path):
         self.selected_folder = path
-        self.folder_label.setText(f"Seçilen: {path}")
-        self.log(f"Otomatik olarak klasör seçildi: {path}")
+        self.folder_label.setText(f"Selected: {path}")
+        self.log(f"Folder automatically selected: {path}")
         # Refresh file list if needed? For now just setting it is enough for 'Start Grading'
-        QMessageBox.information(self, "Aktarım Tamamlandı", f"Dosyalar başarıyla alındı!\nKonum: {path}")
+        QMessageBox.information(self, "Transfer Completed", f"Files successfully received!\nLocation: {path}")

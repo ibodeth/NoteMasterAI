@@ -36,11 +36,11 @@ class QuestionResultWidget(QFrame):
         self.spin_score.setStyleSheet("color: #000; background: #fff;")
         self.spin_score.valueChanged.connect(self.on_score_changed)
         
-        if self.data.get('question_type') == "Öğrenci Bilgisi":
+        if self.data.get('question_type') == "Student Info":
             self.spin_score.setEnabled(False)
             self.spin_score.setSuffix("")
         
-        lbl_score_title = QLabel("Puan:")
+        lbl_score_title = QLabel("Score:")
         lbl_score_title.setStyleSheet("color: #2c3e50; font-weight: bold;")
         
         header_layout.addWidget(lbl_name)
@@ -57,16 +57,16 @@ class QuestionResultWidget(QFrame):
         imgs_col = QVBoxLayout()
         
         # Student Image
-        self.lbl_student_img = QLabel("Öğrenci Görseli Yok")
+        self.lbl_student_img = QLabel("No Student Image")
         self.lbl_student_img.setFixedSize(250, 100)
         self.lbl_student_img.setStyleSheet("border: 1px solid #ccc; background: #eaeaea; color: #555;")
         self.lbl_student_img.setAlignment(Qt.AlignCenter)
-        imgs_col.addWidget(QLabel("<b>Öğrenci Yanıtı:</b>"))
+        imgs_col.addWidget(QLabel("<b>Student Response:</b>"))
         imgs_col.addWidget(self.lbl_student_img)
         
         # Key Image
-        self.lbl_key_header = QLabel("<b>Cevap Anahtarı:</b>")
-        self.lbl_key_img = QLabel("Anahtar Yok")
+        self.lbl_key_header = QLabel("<b>Answer Key:</b>")
+        self.lbl_key_img = QLabel("No Key Image")
         self.lbl_key_img.setFixedSize(250, 100)
         self.lbl_key_img.setStyleSheet("border: 1px solid #ccc; background: #eaeaea; color: #555;")
         self.lbl_key_img.setAlignment(Qt.AlignCenter)
@@ -79,21 +79,21 @@ class QuestionResultWidget(QFrame):
         # Text/Reason (Right)
         text_layout = QVBoxLayout()
         
-        lbl_correct_title = QLabel("Doğru Cevap Metni:")
+        lbl_correct_title = QLabel("Correct Answer Text:")
         lbl_correct_title.setStyleSheet("font-weight: bold; color: #27ae60;")
         self.txt_correct = QTextEdit(self.data.get('correct_answer', ''))
         self.txt_correct.setReadOnly(True)
         self.txt_correct.setMaximumHeight(40)
         self.txt_correct.setStyleSheet("background: #eafaf1; color: #333; border: 1px solid #c2e0ce;")
         
-        lbl_ocr_title = QLabel("Öğrenci Yazısı (OCR):")
+        lbl_ocr_title = QLabel("Student Text (OCR):")
         lbl_ocr_title.setStyleSheet("font-weight: bold; color: #2c3e50;")
         self.txt_ocr = QTextEdit(self.data.get('student_text', ''))
         self.txt_ocr.setReadOnly(True)
         self.txt_ocr.setMaximumHeight(50)
         self.txt_ocr.setStyleSheet("background: #fdfdfd; color: #333; border: 1px solid #ccc;")
         
-        lbl_reason_title = QLabel("AI Değerlendirmesi:")
+        lbl_reason_title = QLabel("AI Evaluation:")
         lbl_reason_title.setStyleSheet("font-weight: bold; color: #2c3e50;")
         self.lbl_reason = QLabel(self.data.get('ai_reason', ''))
         self.lbl_reason.setWordWrap(True)
@@ -111,11 +111,11 @@ class QuestionResultWidget(QFrame):
         
         # Footer: Teacher Note
         note_layout = QHBoxLayout()
-        lbl_note = QLabel("Not:")
+        lbl_note = QLabel("Note:")
         lbl_note.setStyleSheet("color: #2c3e50;")
         
         self.inp_note = QLineEdit(self.data.get('teacher_note', ''))
-        self.inp_note.setPlaceholderText("Öğretmen notu...")
+        self.inp_note.setPlaceholderText("Teacher note...")
         self.inp_note.setStyleSheet("color: #000; background: #fff;")
         
         note_layout.addWidget(lbl_note)
@@ -130,7 +130,7 @@ class QuestionResultWidget(QFrame):
                 self.lbl_student_img.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation
             ))
         else:
-            self.lbl_student_img.setText("Görsel Bulunamadı")
+            self.lbl_student_img.setText("Image Not Found")
             
         # Key Image
         if key_path and os.path.exists(key_path):
@@ -165,16 +165,16 @@ class ResultsTab(QWidget):
         # Toolbar
         toolbar = QHBoxLayout()
         
-        self.btn_load = QPushButton("📂 Veritabanı Aç (grading_results.db)")
+        self.btn_load = QPushButton("📂 Open Database (grading_results.db)")
         self.btn_load.clicked.connect(self.load_database)
         toolbar.addWidget(self.btn_load)
         
-        self.lbl_db_status = QLabel("Veritabanı seçilmedi")
+        self.lbl_db_status = QLabel("Database not selected")
         toolbar.addWidget(self.lbl_db_status)
         
         toolbar.addStretch()
         
-        self.btn_export = QPushButton("📄 PDF Rapor Al")
+        self.btn_export = QPushButton("📄 Export PDF Report")
         self.btn_export.clicked.connect(self.export_pdf) # Connect
         self.btn_export.setEnabled(False)
         toolbar.addWidget(self.btn_export)
@@ -187,7 +187,7 @@ class ResultsTab(QWidget):
         # Left: Student List
         left_widget = QWidget()
         left_layout = QVBoxLayout(left_widget)
-        left_layout.addWidget(QLabel("<b>Öğrenciler</b>"))
+        left_layout.addWidget(QLabel("<b>Students</b>"))
         self.list_students = QListWidget()
         self.list_students.itemClicked.connect(self.on_student_selected)
         left_layout.addWidget(self.list_students)
@@ -205,11 +205,11 @@ class ResultsTab(QWidget):
         form_layout.setContentsMargins(0, 0, 0, 0)
         
         self.inp_name = QLineEdit()
-        self.inp_name.setPlaceholderText("Öğrenci Adı")
+        self.inp_name.setPlaceholderText("Student Name")
         self.inp_name.setStyleSheet("font-size: 16px; font-weight: bold; margin: 5px;")
         
         self.inp_class = QLineEdit()
-        self.inp_class.setPlaceholderText("Sınıf")
+        self.inp_class.setPlaceholderText("Class")
         self.inp_class.setFixedWidth(80)
         
         self.inp_number = QLineEdit()
@@ -247,9 +247,9 @@ class ResultsTab(QWidget):
         
         # Navigation
         nav_layout = QHBoxLayout()
-        self.btn_prev_q = QPushButton("← Önceki Soru")
+        self.btn_prev_q = QPushButton("← Previous Question")
         self.btn_prev_q.clicked.connect(self.prev_question)
-        self.btn_next_q = QPushButton("Sonraki Soru →")
+        self.btn_next_q = QPushButton("Next Question →")
         self.btn_next_q.clicked.connect(self.next_question)
         
         nav_layout.addStretch()
@@ -262,7 +262,7 @@ class ResultsTab(QWidget):
 
         # Total Score Display
         self.footer_score_layout = QHBoxLayout()
-        self.lbl_final_total = QLabel("Toplam Puan: 0")
+        self.lbl_final_total = QLabel("Total Score: 0")
         self.lbl_final_total.setStyleSheet("font-size: 16px; font-weight: bold; color: blue;")
         self.footer_score_layout.addStretch()
         self.footer_score_layout.addWidget(self.lbl_final_total)
@@ -277,7 +277,7 @@ class ResultsTab(QWidget):
         if not self.students or not self.db_path:
             return
             
-        save_path, _ = QFileDialog.getSaveFileName(self, "PDF Kaydet", "Sinif_Listesi.pdf", "PDF Files (*.pdf)")
+        save_path, _ = QFileDialog.getSaveFileName(self, "Save PDF", "Class_Results_Report.pdf", "PDF Files (*.pdf)")
         if not save_path:
             return
             
@@ -286,14 +286,14 @@ class ResultsTab(QWidget):
         
         # Generate HTML Table
         html = """
-        <h1 style='text-align: center;'>Sınıf Sınav Sonuç Listesi</h1>
+        <h1 style='text-align: center;'>Class Exam Results List</h1>
         <table border='1' cellspacing='0' cellpadding='5' width='100%'>
             <tr style='background-color: #f2f2f2;'>
-                <th>Sınıf</th>
+                <th>Class</th>
                 <th>No</th>
-                <th>Öğrenci Adı</th>
-                <th>Toplam Puan</th>
-                <th>Notlar</th>
+                <th>Student Name</th>
+                <th>Total Score</th>
+                <th>Notes</th>
             </tr>
         """
         
@@ -325,10 +325,10 @@ class ResultsTab(QWidget):
         printer.setOutputFileName(save_path)
         
         doc.print_(printer)
-        QMessageBox.information(self, "Başarılı", f"PDF Raporu kaydedildi:\n{save_path}")
+        QMessageBox.information(self, "Success", f"PDF Raporu kaydedildi:\n{save_path}")
         
     def load_database(self):
-        path, _ = QFileDialog.getOpenFileName(self, "Veritabanı Seç", "", "SQLite Files (*.db)")
+        path, _ = QFileDialog.getOpenFileName(self, "Select Database", "", "SQLite Files (*.db)")
         if not path: return
         
         self.db_path = path
@@ -373,7 +373,7 @@ class ResultsTab(QWidget):
         info_zones = []
         
         for res in all_results:
-            if res.get('question_type') == "Öğrenci Bilgisi":
+            if res.get('question_type') == "Student Info":
                 info_zones.append(res)
             else:
                 self.current_results.append(res)
@@ -402,16 +402,16 @@ class ResultsTab(QWidget):
                          pix = QPixmap(full_p)
                          lbl.setPixmap(pix.scaled(lbl.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
                      else:
-                         lbl.setText("Görsel Yok")
+                         lbl.setText("No Image")
                  else:
-                     lbl.setText("Yol Yok")
+                     lbl.setText("No Path")
                  
                  self.header_images_layout.addWidget(lbl)
             self.header_images_layout.addStretch()
         else:
             self.header_images_scroll.setVisible(False)
         
-        self.lbl_final_total.setText(f"Toplam Puan: {student['total_score']:.2f}")
+        self.lbl_final_total.setText(f"Total Score: {student['total_score']:.2f}")
         
         self.show_current_question()
         
@@ -424,7 +424,7 @@ class ResultsTab(QWidget):
         new_num = self.inp_number.text()
         
         database.update_student_metadata(self.db_path, self.current_student_id, new_name, new_num, new_class)
-        QMessageBox.information(self, "Bilgi", "Öğrenci bilgileri güncellendi.")
+        QMessageBox.information(self, "Information", "Student information updated.")
         self.refresh_student_list() # Update name in list
         
     def show_current_question(self):
@@ -434,7 +434,7 @@ class ResultsTab(QWidget):
              if child.widget(): child.widget().deleteLater()
              
         if not self.current_results:
-            # self.lbl_student_header.setText("Sonuç Bulunamadı") # Removed undefined
+            # self.lbl_student_header.setText("No Results Found") # Removed undefined
             return
             
         # Bounds check
@@ -506,7 +506,7 @@ class ResultsTab(QWidget):
         new_total = database.recalculate_student_total(self.db_path, sid)
         
         # 3. GUI Update (Total Label)
-        self.lbl_final_total.setText(f"Toplam Puan: {new_total:.2f}")
+        self.lbl_final_total.setText(f"Total Score: {new_total:.2f}")
         
         # 4. Update Local Cache (CRITICAL FIX)
         # We must update self.current_results so next/prev buttons show new score.

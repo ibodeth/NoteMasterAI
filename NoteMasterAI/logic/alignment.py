@@ -2,36 +2,33 @@ import cv2
 import numpy as np
 import os
 
-# --- AYARLAR ---
-# Eşleşme hassasiyeti (Düşük = Daha katı eleme, Yüksek = Daha çok kabul)
-# 0.7 - 0.75 arası idealdir.
-# Eşleşme hassasiyeti (Düşük = Daha katı eleme, Yüksek = Daha çok kabul)
-# 0.7 - 0.75 arası idealdir.
+# --- SETTINGS ---
+# Match sensitivity (Low = strict, High = lenient)
+# 0.7 - 0.75 is ideal.
 RATIO_TEST_THRESHOLD = 0.80 
 
-# Homography hesaplarken kabul edilebilir piksel hatası
-# 4.0 veya 5.0 idealdir. Çok düşük yaparsan (örn: 1.0) hiç eşleşme bulamayabilir.
+# Acceptable pixel error in homography calculation
+# 4.0 or 5.0 is ideal. Too low (e.g. 1.0) may yield no matches.
 RANSAC_REPROJ_THRESHOLD = 10.0
 
-# Hizalama yapmak için gereken minimum "kaliteli" nokta sayısı
-# Hizalama yapmak için gereken minimum "kaliteli" nokta sayısı
+# Minimum number of "good" matches required for alignment
 MIN_MATCH_COUNT = 10
-# SIFT hesaplaması için maksimum boyut (Hız ve genel yapı doğruluğu için)
+# Maximum size for SIFT computation (for speed and global accuracy)
 MAX_ALIGN_DIM = 2000
 
 def align_image(img_template, img_student, debug_path=None):
     """
-    NoteMaster Hizalama Motoru (v5 - Rotation Aware + Multi-Method)
+    NoteMaster Alignment Engine (v5 - Rotation Aware + Multi-Method)
     
-    Öğrenci kağıdını hizalar. Önce farklı açıları (0, 90, -90, 180) SIFT ile dener.
-    Eğer hepsi başarısız olursa, 0 derecede ORB ve AKAZE alternatiflerini dener.
+    Aligns the student sheet. Tries SIFT at different angles (0, 90, -90, 180) first.
+    If all fail, tries ORB and AKAZE alternatives at 0 degrees.
     
     Args:
-        img_template: Referans resim (BGR)
-        img_student: Öğrenci resmi (BGR)
+        img_template: Reference image (BGR)
+        img_student: Student image (BGR)
         
     Returns:
-        aligned_image: Hizalanmış resim veya None
+        aligned_image: Aligned image or None
     """
     
     def get_rotated(img, angle):
@@ -46,31 +43,30 @@ def align_image(img_template, img_student, debug_path=None):
     rotations = [0, 90, -90, 180]
     
     for angle in rotations:
-        # Log only if retrying
         if angle != 0:
-             print(f"[Alignment] Deneniyor: SIFT ile {angle} derece döndürme...")
+             print(f"[Alignment] Trying: SIFT with {angle}-degree rotation...")
         else:
-             print(f"[Alignment] Deneniyor: SIFT (Standart)...")
+             print(f"[Alignment] Trying: SIFT (Standard)...")
              
         rot_img = get_rotated(img_student, angle)
         
         # Use SIFT as primary
         result = _try_align_method("SIFT", img_template, rot_img, debug_path)
         if result is not None:
-             print(f"[Alignment] SIFT ({angle}°) ile başarıyla hizalandı.")
+             print(f"[Alignment] Successfully aligned using SIFT ({angle}°).")
              return result
 
     # 2. Fallback Strategy (Texture/Lighting Issues)
     # If SIFT failed all angles, try robust binary descriptors on original image
     other_methods = ["ORB", "AKAZE"]
     for method in other_methods:
-        print(f"[Alignment] Deneniyor: {method} (Fallback)...")
+        print(f"[Alignment] Trying: {method} (Fallback)...")
         result = _try_align_method(method, img_template, img_student, debug_path)
         if result is not None:
-            print(f"[Alignment] {method} ile başarıyla hizalandı.")
+            print(f"[Alignment] Successfully aligned using {method}.")
             return result
             
-    print("[Alignment] Kritik: Tüm hizalama yöntemleri ve açılar başarısız oldu!")
+    print("[Alignment] Critical: All alignment methods and angles failed!")
     return None
 
 def validate_homography(H, h_stud, w_stud, h_tmpl, w_tmpl):
@@ -132,7 +128,7 @@ def validate_homography(H, h_stud, w_stud, h_tmpl, w_tmpl):
     return True
 
 def _try_align_method(method_name, img_template, img_student, debug_path):
-    """Tekil hizalama denemesi"""
+    """Single alignment attempt"""
     
     def resize_for_compute(img, max_dim=MAX_ALIGN_DIM):
         h, w = img.shape[:2]
@@ -182,7 +178,7 @@ def _try_align_method(method_name, img_template, img_student, debug_path):
         flann = cv2.FlannBasedMatcher(index_params, search_params)
         try:
              matches = flann.knnMatch(des_template, des_student, k=2)
-        except: return None
+         except: return None
 
     # 4. Ratio Test
     good_matches = []
@@ -220,11 +216,7 @@ def _try_align_method(method_name, img_template, img_student, debug_path):
         return None
     # -------------------------------
 
-    # 6. Warming
+    # 6. Warping
     aligned_image = cv2.warpPerspective(img_student, H, (w_orig, h_orig))
     
-    if debug_path and method_name == "SIFT": 
-         pass
-         
     return aligned_image
-

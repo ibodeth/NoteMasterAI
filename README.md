@@ -11,13 +11,11 @@
 
 # NoteMaster 🧠📄
 
-**NoteMaster**, klasik sınav okuma ve notlandırma sürecini yapay zeka ile dijitalleştiren, **öğretmen-benzeri puanlama** yapabilen masaüstü ve mobil destekli bir sınav değerlendirme sistemidir.
-
-Amaç; öğretmenin karar mantığını taklit eden, gerekçeli, kısmi puanlama yapabilen ve görsel bağlamı dikkate alan bir AI asistanı sunmaktır.
+**NoteMaster** is an intelligent exam grading and assessment system designed to digitize and automate the exam evaluation workflow. By utilizing AI and computer vision, NoteMaster mimics teacher-like grading decisions, providing detailed justifications, partial grading, and context-aware assessments via a combined desktop and mobile ecosystem.
 
 ---
 
-## 📸 Ekran Görüntüleri
+## 📸 Screenshots
 
 <p align="center">
   <img src="assets/screenshots/1.png" width="30%" />
@@ -27,75 +25,59 @@ Amaç; öğretmenin karar mantığını taklit eden, gerekçeli, kısmi puanlama
 
 ---
 
-## ✨ Temel Özellikler
+## ✨ Key Features
 
-### 🧠 Öğretmen-Benzeri AI Puanlama
+### 🧠 Teacher-Like AI Grading
+* **Partial Credit Evaluation:** Rather than simple binary correct/incorrect grading, the system evaluates logical progress (e.g., awarding 0.25, 0.50, or 0.75 points based on intermediate steps).
+* **Justified Feedback:** The AI provides explicit reasons for its grading decisions (e.g., "One calculation error detected in the final step, 75% score awarded").
+* **Custom Teacher Guidelines:** Instruct the AI to ignore spelling errors, grade based only on final results, or focus on specific process steps.
 
-* **Kısmi Puanlama:** Tek hata yüzünden 0 yok (0.25 / 0.50 / 0.75)
-* **Gerekçeli Değerlendirme:**
+### 🖼️ Context-Aware OCR & Visual Analysis
+* Evaluates students' work based on surrounding charts, tables, and handwritten annotations.
+* Built-in anti-hallucination guardrails to prevent AI from inventing information not present in the scanned paper.
 
-  * "Tabloda 1 hata bulundu, %75 puan verildi"
-* **Öğretmen Notları:**
+### 📄 Layout Template System
+* Define custom reusable layout templates from blank PDF exams.
+* Configure per-question point distributions, bounding box coordinates, and specialized instructions.
 
-  * Yazım yanlışlarını dikkate alma
-  * Sadece sonuca bak
-  * İşlem adımlarına puan ver
+### 📱 Wireless Mobile Scan Client
+* Use the companion mobile application to take high-resolution captures of physical exams.
+* Auto-transfer scans to the desktop grading server in real-time over the local network (Wi-Fi).
 
-### 🖼️ Görsel Bağlamlı Analiz
+### 🧪 Bounding Box Auto-Detection (YOLO)
+* Instantly detect question boundaries using a custom-trained YOLO model.
+* Trained on a hand-labeled dataset of over 750 custom exam sheets.
+* [Dataset and YOLO Model Registry](https://universe.roboflow.com/erbascan/)
 
-* Grafik, tablo ve metin bağlamına göre değerlendirme
-* Anti-halüsinasyon: Görselde yoksa uydurma yok
-
-### 📄 Şablon (Model) Sistemi
-
-* PDF tabanlı yeniden kullanılabilir sınav modelleri
-* Soru bazlı puan, bölge ve AI talimatı
-
-### 📱 Mobil Tarama Entegrasyonu
-
-* Telefonun kendi kamera uygulaması
-* Yüksek çözünürlük ve gece modu desteği
-* Wi-Fi üzerinden otomatik PC aktarımı
-
-### 🧪 Deneysel: Otomatik Soru Tespiti (YOLO)
-
-* Yeni model oluştururken otomatik soru algılama
-* Manuel düzenleme her zaman mümkün
-* 750 Sayfa yazılı kağıdı el ile etiketlendi ve eğitildi.
-* https://universe.roboflow.com/erbascan/
-
-
-### 📊 Raporlama
-
-* Sınıf geneli analiz
-* PDF ve Excel çıktıları
+### 📊 Reports & Exporting
+* Full classroom performance dashboards.
+* Clean PDF export support for class grading results.
 
 ---
 
-## 🛠 Kullanılan Teknolojiler
+## 🛠 Tech Stack
 
-* Python 3.10+
-* Flutter
-* Google Gemini API
-* Google Cloud Vision OCR
-* OpenCV
-* YOLO
-* Poppler (PDF rendering)
+* **Core Backend & Desktop GUI:** Python 3.10+, PyQt5
+* **Mobile Client:** Flutter / Dart
+* **Artificial Intelligence:** Google Gemini API (Multimodal LLM)
+* **Computer Vision & OCR:** Google Cloud Vision API, OpenCV, YOLO
+* **PDF Utility:** Poppler
 
 ---
 
-## ⚙️ Kurulum
+## ⚙️ Configuration & Setup
 
-### Gereksinimler
+### Prerequisites
 
 * Python 3.10+
-* Flutter SDK
-* Google Cloud API Anahtarları
+* Flutter SDK (for mobile client build)
+* Google Cloud Platform account with Vision API access enabled
+* Gemini API Key
 
-### API Ayarları
+### Credentials Setup
 
-1. `service-account.json` dosyasını ana dizine ekleyin
-2. Gemini API anahtarı ilk çalıştırmada sorulur veya `secrets.json` içine eklenir
+1. Place your Google Cloud Service Account credentials JSON file as `service-account.json` in the root folder.
+2. Provide your Gemini API key during the initial launch or save it manually inside `secrets.json`:
 
 ```json
 {
@@ -103,36 +85,30 @@ Amaç; öğretmenin karar mantığını taklit eden, gerekçeli, kısmi puanlama
 }
 ```
 
-> 🔐 API anahtarlarını repoya commit etmeyin.
+> 🔐 **Security Note:** Never commit `secrets.json` or `service-account.json` to public version control.
 
 ---
 
-### Masaüstü Uygulaması
+## 🚀 Running the Applications
+
+### Desktop Application (Server & Grading Interface)
 
 ```bash
-cd NoteMaster/NoteMasterAI
+cd NoteMasterAI
 pip install -r requirements.txt
 python main_qt.py
 ```
 
-### Mobil Uygulama
+### Mobile App (Scanner Client)
 
 ```bash
-cd NoteMaster/NoteMasterMobile
+cd NoteMasterMobile
 flutter pub get
 flutter run
 ```
 
 ---
 
-## 👨‍💻 Geliştirici
+## 📄 License
 
-**İbrahim Nuryağınlı**
-
----
-
-## 📄 Lisans
-
-Bu proje **MIT Lisansı** ile lisanslanmıştır.
-
-> ✍️ Geliştirici Notu: AI bir hakem değil, öğretmenin karar sürecini destekleyen bir asistandır.
+This project is licensed under the **MIT License**.

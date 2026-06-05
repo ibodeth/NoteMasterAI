@@ -35,7 +35,7 @@ class MainWindow(QMainWindow):
         self.tab_grading = GradingTab()
         self.tab_results = ResultsTab()
         
-        self.tabs.addTab(self.teaching_tab, "1. Şablon Oluşturma")
-        self.tabs.addTab(self.verification_tab, "2. Kontrol ve Onay")
-        self.tabs.addTab(self.tab_grading, "3. Notlandırma")
-        self.tabs.addTab(self.tab_results, "4. Sonuçlar (İnceleme)")
+        self.tabs.addTab(self.teaching_tab, "1. Template Creation")
+        self.tabs.addTab(self.verification_tab, "2. Verification & Approval")
+        self.tabs.addTab(self.tab_grading, "3. Grading")
+        self.tabs.addTab(self.tab_results, "4. Results (Review)")

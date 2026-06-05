@@ -15,7 +15,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 # Global reference for the server to access
 CURRENT_REFERENCE_IMAGE = None
 SESSION_PDF_IMAGES = {} # 1-based index: cv2 image
-UPLOAD_DIR = "d:/Projects/NoteMaster/Scans"
+UPLOAD_DIR = os.environ.get("NOTE_MASTER_SCANS_DIR", "d:/Projects/NoteMaster/Scans")
 
 def set_reference_image(img):
     global CURRENT_REFERENCE_IMAGE
@@ -67,7 +67,7 @@ class MobileRequestHandler(http.server.BaseHTTPRequestHandler):
                         
                     print(f"DEBUG: Session PDF Loaded. {len(images)} pages.")
                     if hasattr(self.server, 'signals'):
-                        self.server.signals.log.emit(f"Mobil PDF Yüklendi: {len(images)} sayfa")
+                        self.server.signals.log.emit(f"Mobile PDF Loaded: {len(images)} pages")
                         
                     self.send_response(200)
                     self.end_headers()
@@ -214,11 +214,11 @@ class MobileRequestHandler(http.server.BaseHTTPRequestHandler):
                     h, w = img_check.shape[:2]
                     res_info = f"({w}x{h}px)"
                 else:
-                    res_info = "(Boyut?)"
+                    res_info = "(Size?)"
 
                 # Signal Logging if possible
                 if hasattr(self.server, 'signals'):
-                     self.server.signals.log.emit(f"Mobil Kayıt: {student_name} - Sayfa {page_num} {res_info}")
+                     self.server.signals.log.emit(f"Mobile Scan Saved: {student_name} - Page {page_num} {res_info}")
                 
                 self.send_response(200)
                 self.end_headers()
@@ -255,8 +255,8 @@ class TransferServer:
         self.udp_thread.daemon = True
         self.udp_thread.start()
         
-        self.signals.log.emit(f"Sunucu Başlatıldı: {self.get_ip()}:{self.port}")
-        self.signals.status_update.emit("Hazır")
+        self.signals.log.emit(f"Server Started: {self.get_ip()}:{self.port}")
+        self.signals.status_update.emit("Ready")
 
     def _udp_listen(self):
         try:
@@ -277,7 +277,7 @@ class TransferServer:
             self.server.signals = self.signals 
             self.server.serve_forever()
         except Exception as e:
-            self.signals.log.emit(f"Sunucu Hatası: {e}")
+            self.signals.log.emit(f"Server Error: {e}")
 
     def stop(self):
         self.running = False
@@ -290,7 +290,7 @@ class TransferServer:
         # UDP socket doesn't close easily from other thread without sending a packet or timeout, 
         # but daemon thread will die with app.
         
-        self.signals.log.emit("Sunucu Durduruldu.")
+        self.signals.log.emit("Server Stopped.")
 
     def get_ip(self):
         try:
@@ -301,3 +301,17 @@ class TransferServer:
             return ip
         except:
             return "127.0.0.1"
+
+if __name__ == "__main__":
+    import time
+    print("Starting NoteMaster standalone transfer server...")
+    server = TransferServer(port=5000)
+    server.signals.log.connect(lambda m: print(f"[Server Log] {m}"))
+    server.signals.status_update.connect(lambda s: print(f"[Server Status] {s}"))
+    server.start()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("Stopping server...")
+        server.stop()

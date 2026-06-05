@@ -12,7 +12,7 @@ SECRETS_FILE = "secrets.json"
 class CredentialDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("NoteMaster - Kurulum Sihirbazı")
+        self.setWindowTitle("NoteMaster - Setup Wizard")
         self.setFixedSize(500, 350)
         self.setModal(True)
         self.setup_ui()
@@ -24,12 +24,12 @@ class CredentialDialog(QDialog):
         layout.setContentsMargins(30, 30, 30, 30)
 
         # Header
-        lbl_title = QLabel("Hoş Geldiniz! 🚀")
+        lbl_title = QLabel("Welcome! 🚀")
         lbl_title.setStyleSheet("font-size: 22px; font-weight: bold; color: #007acc;")
         lbl_title.setAlignment(Qt.AlignCenter)
         layout.addWidget(lbl_title)
 
-        lbl_desc = QLabel("NoteMaster'ı kullanabilmek için lütfen aşağıdaki Google API bilgilerini giriniz.\nBu işlem sadece bir kez yapılacaktır.")
+        lbl_desc = QLabel("To use NoteMaster, please provide the Google/Gemini API credentials below.\nThis setup is only required once.")
         lbl_desc.setWordWrap(True)
         lbl_desc.setStyleSheet("color: #cccccc;")
         lbl_desc.setAlignment(Qt.AlignCenter)
@@ -47,13 +47,13 @@ class CredentialDialog(QDialog):
         self.inp_api_key.setEchoMode(QLineEdit.Password)
         self.inp_api_key.setStyleSheet("padding: 8px;")
         
-        lbl_key = QLabel("Gemini API Anahtarı:")
+        lbl_key = QLabel("Gemini API Key:")
         lbl_key.setStyleSheet("font-weight: bold;")
         form_layout.addRow(lbl_key, self.inp_api_key)
 
         # 2. Service Account
         self.inp_sa_path = QLineEdit()
-        self.inp_sa_path.setPlaceholderText("service-account.json dosya yolu...")
+        self.inp_sa_path.setPlaceholderText("service-account.json file path...")
         self.inp_sa_path.setReadOnly(True)
         self.inp_sa_path.setStyleSheet("padding: 8px; background-color: #2d2d30;")
 
@@ -65,7 +65,7 @@ class CredentialDialog(QDialog):
         sa_layout.addWidget(self.inp_sa_path)
         sa_layout.addWidget(btn_browse)
 
-        lbl_sa = QLabel("Google Vision Dosyası:")
+        lbl_sa = QLabel("Google Vision Credentials File:")
         lbl_sa.setStyleSheet("font-weight: bold;")
         form_layout.addRow(lbl_sa, sa_layout)
 
@@ -76,7 +76,7 @@ class CredentialDialog(QDialog):
         # Buttons
         btn_layout = QHBoxLayout()
         
-        self.btn_save = QPushButton("✅ Kaydet ve Başla")
+        self.btn_save = QPushButton("✅ Save and Start")
         self.btn_save.setFixedHeight(45)
         self.btn_save.setStyleSheet("""
             QPushButton {
@@ -90,7 +90,7 @@ class CredentialDialog(QDialog):
         """)
         self.btn_save.clicked.connect(self.validate_and_save)
 
-        btn_exit = QPushButton("Çıkış")
+        btn_exit = QPushButton("Exit")
         btn_exit.setFixedHeight(45)
         btn_exit.setStyleSheet("background-color: #d9534f; color: white; border-radius: 5px;")
         btn_exit.clicked.connect(self.reject)
@@ -101,7 +101,7 @@ class CredentialDialog(QDialog):
         layout.addLayout(btn_layout)
 
     def browse_sa_file(self):
-        f, _ = QFileDialog.getOpenFileName(self, "Service Account JSON Seç", "", "JSON Files (*.json)")
+        f, _ = QFileDialog.getOpenFileName(self, "Select Service Account JSON", "", "JSON Files (*.json)")
         if f:
             self.inp_sa_path.setText(f)
 
@@ -126,11 +126,11 @@ class CredentialDialog(QDialog):
         sa_path = self.inp_sa_path.text().strip()
 
         if not key:
-            QMessageBox.warning(self, "Eksik Bilgi", "Lütfen Gemini API Anahtarını giriniz.")
+            QMessageBox.warning(self, "Missing Information", "Please enter the Gemini API Key.")
             return
         
         if not sa_path or not os.path.exists(sa_path):
-            QMessageBox.warning(self, "Eksik Bilgi", "Lütfen geçerli bir Service Account JSON dosyası seçiniz.")
+            QMessageBox.warning(self, "Missing Information", "Please select a valid Service Account JSON file.")
             return
 
         # Prepare for save
@@ -147,11 +147,11 @@ class CredentialDialog(QDialog):
             with open(SECRETS_FILE, "w") as f:
                 json.dump(data, f, indent=4)
                 
-            QMessageBox.information(self, "Başarılı", "Kurulum tamamlandı! Uygulama başlatılıyor...")
+            QMessageBox.information(self, "Success", "Setup completed! Launching application...")
             self.accept()
             
         except Exception as e:
-            QMessageBox.critical(self, "Hata", f"Ayarlar kaydedilemedi:\n{e}")
+            QMessageBox.critical(self, "Error", f"Could not save settings:\n{e}")
 
 def check_credentials_at_startup():
     """
